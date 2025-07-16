@@ -1,11 +1,11 @@
 {
-	"id": "janitor",
-	"name": "Janitor",
-	"version": "1.1.1",
+	"id": "janitor-dpvpro",
+	"name": "Janitor (Dpvpro)",
+	"version": "1.2.0",
 	"minAppVersion": "0.15.0",
 	"description": "Performs cleanup tasks on the Obsidian vault",
-	"author": "Gabriele Cannata",
-	"authorUrl": "https://github.com/Canna71",
+	"author": "Denis Proskurin",
+	"authorUrl": "https://github.com/dpvpro",
 	"fundingUrl": "https://www.buymeacoffee.com/gcannata",
 	"isDesktopOnly": false
 }

@@ -190,7 +190,8 @@ export default class JanitorPlugin extends Plugin {
 			(results.orphans && results.orphans.length) ||
 			(results.empty && results.empty.length) ||
 			(results.expired && results.expired.length) ||
-			(results.big && results.big.length);
+			(results.big && results.big.length) ||
+			(results.emptyDirectories && results.emptyDirectories.length);
 		this.updateStatusBar("");
 		if (!foundSomething) {
 			new Notice(`Janitor scanned and found nothing to cleanup`);
@@ -220,7 +221,14 @@ export default class JanitorPlugin extends Plugin {
 				results.big,
 			].flatMap((list) => (list ? list.map((file) => file.path) : []));
 			files = [...new Set(files)];
-			this.perform(this.settings.defaultOperation, files);
+			
+			// Handle empty directories separately
+			const directories = results.emptyDirectories || [];
+			
+			await this.perform(this.settings.defaultOperation, files);
+			if (directories.length > 0) {
+				await this.performOnDirectories(this.settings.defaultOperation, directories);
+			}
 		}
 	}
 
@@ -231,6 +239,17 @@ export default class JanitorPlugin extends Plugin {
 			`${processingResult.deletedFiles} files deleted.` +
 				(processingResult.notDeletedFiles
 					? `${processingResult.notDeletedFiles} files not deleted`
+					: "")
+		);
+	}
+
+	async performOnDirectories(operation: OperationType, directories: string[]) {
+		const fileProcessor = new FileProcessor(this.app);
+		const processingResult = await fileProcessor.processDirectories(directories, operation);
+		new Notice(
+			`${processingResult.deletedFiles} folders deleted.` +
+				(processingResult.notDeletedFiles
+					? `${processingResult.notDeletedFiles} folders not deleted`
 					: "")
 		);
 	}

@@ -1,5 +1,5 @@
 import { OperationType } from './JanitorSettings';
-import { App } from 'obsidian';
+import { App, TFolder } from 'obsidian';
 export class FileProcessor {
 	app: App;
 
@@ -14,23 +14,23 @@ export class FileProcessor {
 		let notDeletedFiles = 0;
 
 		for (const file of uniq) {
-			const tfile = app.vault.getAbstractFileByPath(file);
+			const tfile = this.app.vault.getAbstractFileByPath(file);
 			if (tfile) {
 				try {
 
 					switch (operation) {
 
 						case OperationType.TrashSystem:
-							await app.vault.trash(tfile, true);
+							await this.app.vault.trash(tfile, true);
 							deletedFiles++;
 							break;
 
 						case OperationType.Trash:
-							await app.vault.trash(tfile, false);
+							await this.app.vault.trash(tfile, false);
 							deletedFiles++;
 							break;
 						case OperationType.Delete:
-							await app.vault.delete(tfile);
+							await this.app.vault.delete(tfile);
 							deletedFiles++;
 							break;
 						default:
@@ -47,5 +47,44 @@ export class FileProcessor {
 			}
 		}
 		return { deletedFiles, notDeletedFiles };
+	}
+
+	async processDirectories(directoriesPaths: string[], operation = OperationType.Trash) {
+		// ensures that we don't try to delete the same folder twice
+		const uniq = [...new Set(directoriesPaths)];
+		let deletedDirectories = 0;
+		let notDeletedDirectories = 0;
+
+		for (const directoryPath of uniq) {
+			const directory = this.app.vault.getAbstractFileByPath(directoryPath);
+			if (directory && directory instanceof TFolder) {
+				try {
+					switch (operation) {
+						case OperationType.TrashSystem:
+							await this.app.vault.trash(directory, true);
+							deletedDirectories++;
+							break;
+
+						case OperationType.Trash:
+							await this.app.vault.trash(directory, false);
+							deletedDirectories++;
+							break;
+						case OperationType.Delete:
+							await this.app.vault.delete(directory);
+							deletedDirectories++;
+							break;
+						default:
+							console.warn(`Warning: operation ${operation} unknown`);
+							break;
+					}
+				} catch {
+					notDeletedDirectories++;
+				}
+			} else {
+				console.warn(`Warning: folder ${directoryPath} was not found for deletion!`);
+				notDeletedDirectories++;
+			}
+		}
+		return { deletedFiles: deletedDirectories, notDeletedFiles: notDeletedDirectories };
 	}
 }

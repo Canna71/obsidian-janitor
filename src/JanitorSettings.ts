@@ -20,6 +20,7 @@ export interface JanitorSettings {
 	processEmpty: boolean;
 	processExpired: boolean;
 	processBig: boolean;
+	processEmptyDirectories: boolean;
 	honorObsidianExcludedFiles: boolean;
 	excludedFilesFilters: string[];
 }
@@ -28,7 +29,7 @@ export const DEFAULT_SETTINGS: JanitorSettings = {
 	runAtStartup: false,
 	addRibbonIcon: true,
 	promptUser: true,
-	promptForBigFiles: true,
+	promptForBigFiles: false,
 	attachmentsExtensions: ".jpg|.jpeg|.png|.gif|.svg|.pdf",
 	// useSystemTrash: false,
 	defaultOperation: OperationType.Trash,
@@ -37,8 +38,9 @@ export const DEFAULT_SETTINGS: JanitorSettings = {
 	sizeLimitKb: 1024,
 	processOrphans: true,
 	processEmpty: true,
-	processExpired: true,
-	processBig: true,
+	processExpired: false,
+	processBig: false,
+	processEmptyDirectories: true,
 	honorObsidianExcludedFiles: true,
 	excludedFilesFilters: []
 }

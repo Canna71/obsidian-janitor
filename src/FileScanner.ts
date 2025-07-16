@@ -1,5 +1,5 @@
 import { JanitorSettings } from './JanitorSettings';
-import { App, FrontMatterCache, normalizePath, TFile } from 'obsidian';
+import { App, FrontMatterCache, normalizePath, TFile, TFolder } from 'obsidian';
 import { CanvasData, CanvasTextData } from "obsidian/canvas"
 import { asyncFilter, partition } from './Utils';
 import { moment } from "obsidian";
@@ -8,7 +8,8 @@ export interface ScanResults {
 	orphans: TFile[],
 	empty: TFile[],
 	expired: TFile[],
-	big: TFile[]
+	big: TFile[],
+	emptyDirectories: string[]
 }
 
 interface IFrontMatter {
@@ -29,7 +30,7 @@ export class FileScanner {
 	}
 
 	isNote(file: TFile): boolean {
-		return file.extension.toLowerCase() === "md" || 
+		return file.extension.toLowerCase() === "md" ||
 		file.extension.toLowerCase() === "canvas" ;
 	}
 
@@ -44,9 +45,9 @@ export class FileScanner {
 			//@ts-ignore
 			exclusionFilters = exclusionFilters.concat(this.app.vault.config.userIgnoreFilters)
 		}
-		
+
 		const regexes = exclusionFilters.map<RegExp>((filter:string) => new RegExp(filter,"i"));
-		
+
 		const files = allFiles.filter(file=>{
 			return !regexes.some(re=>re.exec(file.path));
 		});
@@ -57,12 +58,14 @@ export class FileScanner {
 		const empty = this.settings.processEmpty && await this.findEmpty(files) ;
 		const expired = this.settings.processExpired && this.findExpired(frontMatters) ;
 		const big = this.settings.processBig && this.findBigFiles(files) ;
+		const emptyDirectories = this.settings.processEmptyDirectories && this.findEmptyDirectories() ;
 
 		const results = {
-			orphans, 
+			orphans,
 			empty,
 			expired,
 			big,
+			emptyDirectories: emptyDirectories,
 			scanning: false
 		} as ScanResults;
 
@@ -73,13 +76,51 @@ export class FileScanner {
 		return files.filter(file => (file.stat.size >> 10) > this.settings.sizeLimitKb);
 	}
 
+	private findEmptyDirectories(): string[] {
+		const allDirectories = this.app.vault.getAllLoadedFiles()
+			.filter(file => file instanceof TFolder) as TFolder[];
+
+		const emptyDirectories: string[] = [];
+
+		// Check each directory to see if it's empty (recursively)
+		for (const directory of allDirectories) {
+			if (this.isDirectoryEmpty(directory)) {
+				emptyDirectories.push(directory.path);
+			}
+		}
+
+		return emptyDirectories;
+	}
+
+	private isDirectoryEmpty(directory: TFolder): boolean {
+		// A directory is considered empty if it has no files and no non-empty subdirectories
+		const children = directory.children;
+
+		if (children.length === 0) {
+			return true;
+		}
+
+		// Check if all children are empty directories
+		for (const child of children) {
+			if (child instanceof TFile) {
+				return false; // Found a file, folder is not empty
+			} else if (child instanceof TFolder) {
+				if (!this.isDirectoryEmpty(child)) {
+					return false; // Found a non-empty subdirectory
+				}
+			}
+		}
+
+		return true; // All children are empty directories or no children
+	}
+
 	private findExpired(frontMatters: IFrontMatter[]) {
 		const now = moment.now();
 		const expired = frontMatters.filter(fm => {
 			const expires = fm.frontMatter[this.settings.expiredAttribute] as string | undefined;
-			if (expires) { 
+			if (expires) {
 				//https://day.js.org/docs/en/parse/string-format
-				const maybeDate = moment(expires, this.settings.expiredDateFormat); 
+				const maybeDate = moment(expires, this.settings.expiredDateFormat);
 				if (maybeDate.isValid() && maybeDate.isBefore(now)) {
 					return true;
 				}
@@ -108,7 +149,7 @@ export class FileScanner {
 		const canvasResources = await this.getCanvasResources(notes.filter(this.isCanvas));
 
 
-		const resolvedResources = this.combineLinksAndResolvedMetadata(frontMatters, 
+		const resolvedResources = this.combineLinksAndResolvedMetadata(frontMatters,
 			// resolvedLinks
 			{...resolvedLinks, ...canvasResources}
 			);
@@ -122,7 +163,7 @@ export class FileScanner {
 	}
 
 	async getCanvasResources(canvases: TFile[]) {
-		
+
 		const datas = await Promise.all(canvases.map(async file=>{
 			const content = await this.app.vault.cachedRead(file);
 			const data = JSON.parse(content) as CanvasData
@@ -135,7 +176,7 @@ export class FileScanner {
 		const resources = datas.reduce((acc:{ [key: string]: number; }, data:CanvasData)=>{
 			data.nodes.forEach(node => {
 				let m;
-				const textNode = node as CanvasTextData 
+				const textNode = node as CanvasTextData
 				switch (node.type) {
 					case "file":
 						acc[node.file] = (acc[node.file] || 0) + 1;
@@ -150,14 +191,12 @@ export class FileScanner {
 								regex.lastIndex++;
 							}
 							const res = m[1];
-							
-							// app.vault.config.attachmentFolderPath
 
 							if(res){
 
 								acc[res] = (acc[res] || 0) + 1;
 								//@ts-ignore
-								const attPath = normalizePath(`${app.vault.config.attachmentFolderPath}/${res}`)
+								const attPath = normalizePath(`${this.app.vault.config.attachmentFolderPath}/${res}`)
 								acc[attPath] = (acc[attPath] || 0) + 1;
 							}
 						}
@@ -172,7 +211,7 @@ export class FileScanner {
 		// 	// TODO: asynch?
 		// },{})
 		return resources;
-	
+
 	}
 
 
@@ -200,13 +239,13 @@ export class FileScanner {
 
 	private getFrontMatters(notes: TFile[]) {
 		return notes.map(file => {
-			const frontMatter = app.metadataCache.getFileCache(file)?.frontmatter;
+			const frontMatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
 			if (frontMatter) {
 				const stringProps: string[] = extractStringProperties(frontMatter);
 				if (stringProps?.length) {
 					// we should distinguish files from other props maybe...
 					const resolvedProps: string[] = stringProps.map(sp => {
-						const resolvedFile = app.metadataCache.getFirstLinkpathDest(sp, file.path);
+						const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(sp, file.path);
 						if (resolvedFile)
 							return resolvedFile.path;
 					}).filter(sp => !!sp) as string[];
@@ -222,9 +261,9 @@ export class FileScanner {
 	}
 
 	private getResolvedLinks() {
-		const resolvedLinks: { [key: string]: number; } = Object.keys(app.metadataCache.resolvedLinks).
+		const resolvedLinks: { [key: string]: number; } = Object.keys(this.app.metadataCache.resolvedLinks).
 			reduce((rl: { [key: string]: number; }, fileName: string) => {
-				return Object.assign(rl, app.metadataCache.resolvedLinks[fileName]);
+				return Object.assign(rl, this.app.metadataCache.resolvedLinks[fileName]);
 
 			}, {});
 		return resolvedLinks;
@@ -232,6 +271,5 @@ export class FileScanner {
 }
 
 function extractStringProperties(fm: any): string[] {
-	return Object.values<string>(fm).filter(o => typeof o === 'string');
+	return Object.values(fm).filter((o: any) => typeof o === 'string') as string[];
 }
-

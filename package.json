@@ -1,6 +1,6 @@
 {
-	"name": "obsidian-janitor",
-	"version": "1.1.1",
+	"name": "obsidian-janitor-dpvpro",
+	"version": "1.2.0",
 	"description": "Performs cleanup tasks on the Obsidian vault",
 	"main": "main.js",
 	"scripts": {
