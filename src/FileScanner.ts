@@ -70,7 +70,7 @@ export class FileScanner {
 	}
 
 	private findBigFiles(files: TFile[]) {
-		return files.filter(file => (file.stat.size >> 10) > this.settings.sizeLimitKb);
+		return files.filter(file => (file.stat.size >> 10 && !file.stat.isSymbolicLink()) > this.settings.sizeLimitKb);
 	}
 
 	private findExpired(frontMatters: IFrontMatter[]) {
