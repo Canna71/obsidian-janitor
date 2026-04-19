@@ -101,11 +101,13 @@ export default class JanitorPlugin extends Plugin {
 		// 	}
 		// })
 
-		this.app.metadataCache.on("resolved", () => {
-			if (this.settings.runAtStartup && !this.initialScanDone) {
-				this.initialScanDone = true;
-				this.scanFiles();
-			}
+		this.app.workspace.onLayoutReady(() => {
+			this.app.metadataCache.on("resolved", () => {
+				if (this.settings.runAtStartup && !this.initialScanDone) {
+					this.initialScanDone = true;
+					this.scanFiles();
+				}
+			});
 		});
 	}
 
