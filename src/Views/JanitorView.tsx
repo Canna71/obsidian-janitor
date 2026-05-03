@@ -83,7 +83,7 @@ function ScanResults({ app, orphans, empty, big, expired, onSelectionChange, onO
 	return (
 		<div className="janitor-scan-results">
 			{orphans && orphans.length>0 && <FileList app={app} files={orphans} onChange={handleSelectionChange("orphans")} onOpen={handleOpen("orphans")} title="Orphans" />}
-			{empty && empty.length>0 &&  <FileList app={app} title="Empty" files={empty} onChange={handleSelectionChange("empty")}  onOpen={handleOpen("empty")} />}
+			{empty && empty.length>0 &&  <FileList app={app} title="Empty" files={empty} onChange={handleSelectionChange("empty")}  onOpen={handleOpen("empty")} showPreview={false} />}
 			{expired && expired.length>0 && <FileList app={app} title="Expired" files={expired} onChange={handleSelectionChange("expired")}  onOpen={handleOpen("expired")} />}
 			{big && big.length>0 && <FileList app={app} title="Big" files={big} onChange={handleSelectionChange("big")}  onOpen={handleOpen("big")} />}
 		</div>
@@ -116,12 +116,13 @@ const MarqueeText = ({ text }: { text: string }) => {
 	);
 };
 
-const FileList = ({app, files, onChange, onOpen, title}:{
+const FileList = ({app, files, onChange, onOpen, title, showPreview = true}:{
 	app: App,
 	files:SelectableItem[],
 	onChange:(i:number)=>void,
 	onOpen:(i:number)=>void,
-	title: string}
+	title: string,
+	showPreview?: boolean}
 	) => {
 
 	const [preview, setPreview] = useState<{ resourcePath: string; x: number; y: number } | null>(null);
@@ -186,10 +187,10 @@ const FileList = ({app, files, onChange, onOpen, title}:{
 					onChange={handleOnChange(i)}
 					type="checkbox" />
 				<MarqueeText text={file.name} />
-				{file.resourcePath && (
+				{showPreview && file.resourcePath && (
 					<a href="#" className="previewFileIcon" onMouseDown={handlePreviewMouseDown(file.resourcePath)}>preview</a>
 				)}
-				{!file.resourcePath && file.name.endsWith('.md') && (
+				{showPreview && !file.resourcePath && file.name.endsWith('.md') && (
 					<a href="#" className="previewFileIcon" onMouseOver={handleMarkdownHover(file.name.replace(/\.md$/, ''))}>preview</a>
 				)}
 				<a href="#" className="openFileIcon" onClick={handleOpen(i)}>open</a>
