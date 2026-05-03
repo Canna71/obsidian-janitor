@@ -3,13 +3,10 @@ import { OperationType } from "./JanitorSettings";
 import { JanitorModal } from "./Views/JanitorModal";
 
 import {
-	Editor,
 	MarkdownView,
 	Notice,
 	Plugin,
-	stringifyYaml,
 	TFile,
-	View,
 } from "obsidian";
 import { FileScanner } from "src/FileScanner";
 import { DEFAULT_SETTINGS, JanitorSettings } from "src/JanitorSettings";
@@ -56,6 +53,21 @@ export default class JanitorPlugin extends Plugin {
 			callback: () => {
 				this.scanFiles(true, false);
 			},
+		});
+		this.addCommand({
+			id: "scan-vault-orphans",
+			name: "Scan Vault (Orphans)",
+			callback: () => { this.scanFilesFor("orphans"); },
+		});
+		this.addCommand({
+			id: "scan-vault-expired",
+			name: "Scan Vault (Expired)",
+			callback: () => { this.scanFilesFor("expired"); },
+		});
+		this.addCommand({
+			id: "scan-vault-big",
+			name: "Scan Vault (Big Files)",
+			callback: () => { this.scanFilesFor("big"); },
 		});
 
 		this.addCommand({
@@ -109,8 +121,6 @@ export default class JanitorPlugin extends Plugin {
 		});
 	}
 
-	frontMatterRegEx = /^---$(.*)^---/ms;
-
 	private createShortcutCommand(id: string, name: string, n: number, w: any) {
 		this.addCommand({
 			id: id,
@@ -139,44 +149,37 @@ export default class JanitorPlugin extends Plugin {
 	}
 
 	async updateNoteWithDate(view: MarkdownView, dateToSet: string) {
-		const metaData = this.app.metadataCache.getFileCache(
-			view.file
-		)?.frontmatter;
-		let start = metaData?.position.start.offset || 0;
-		let end = metaData?.position.end.offset || 0;
-		// no metadata could also mean empty metadata secion
-		const newMetadata = {
-			...metaData,
-			...{ [this.settings.expiredAttribute]: dateToSet },
-			position: undefined,
-		};
-		const newYaml = stringifyYaml(newMetadata);
-		const content = await this.app.vault.cachedRead(view.file);
-		const m = this.frontMatterRegEx.exec(content);
-		if (!metaData && m) {
-			//empty frontmatter
-			start = m.index;
-			end = m.index + m[0].length;
-		}
-		const frontMatter = "---\n" + newYaml + "---\n";
-		// if(view.getMode()) reading = "preview" edit = "source"
-		if (view.getMode() === "source") {
-			view.editor.replaceRange(
-				frontMatter,
-				view.editor.offsetToPos(start),
-				view.editor.offsetToPos(end)
-			);
-		} else {
-			const newContent =
-				content.substring(0, start) +
-				frontMatter +
-				content.substring(end);
-			this.app.vault.modify(view.file, newContent);
-		}
+		await this.app.fileManager.processFrontMatter(view.file, (fm) => {
+			fm[this.settings.expiredAttribute] = dateToSet;
+		});
 	}
 
 	private updateStatusBar(message: string) {
 		this.statusBarItemEl.setText(message);
+	}
+
+	private async scanFilesFor(category: "orphans" | "expired" | "big") {
+		new Notice("Janitor is scanning vault");
+		this.updateStatusBar("Janitor Scanning...");
+		const scanSettings = {
+			...this.settings,
+			processOrphans: category === "orphans",
+			processEmpty: false,
+			processExpired: category === "expired",
+			processBig: category === "big",
+		};
+		const results = await new FileScanner(this.app, scanSettings).scan();
+		this.updateStatusBar("");
+		const found = (results.orphans && results.orphans.length) ||
+			(results.expired && results.expired.length) ||
+			(results.big && results.big.length);
+		if (!found) {
+			new Notice("Janitor scanned and found nothing to cleanup");
+			return;
+		}
+		const modal = new JanitorModal(this.app, this);
+		modal.open();
+		modal.updateState(results);
 	}
 
 	private async scanFiles(forcePrompt = false, noPrompt = false) {
