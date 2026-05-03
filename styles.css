@@ -47,21 +47,31 @@ If your plugin does not need CSS, delete this file.
 .janitor-file .openFileIcon {
     right: 0px;
 	position: absolute;
-    /* cursor: pointer; */
 	visibility: hidden;
 }
 
 .janitor-file label {
 	width: 100%;
-	/* cursor: pointer; */
 	display: flex;
+	align-items: center;
 }
 
 .janitor-file-name {
 	flex: 1;
 	min-width: 0;
 	overflow: hidden;
-	margin-right: 9em;
+	margin-right: 3.5em;
+}
+
+.janitor-icon {
+	display: flex;
+	align-items: center;
+	line-height: 1;
+}
+
+.janitor-icon svg {
+	width: 14px;
+	height: 14px;
 }
 
 .janitor-file-name-text {
@@ -83,7 +93,7 @@ If your plugin does not need CSS, delete this file.
 }
 
 .previewFileIcon {
-	right: 4em;
+	right: 1.5em;
 	position: absolute;
 	visibility: hidden;
 }

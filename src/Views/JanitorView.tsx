@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { App } from "obsidian";
+import { App, getIcon } from "obsidian";
 import { OperationType } from "src/JanitorSettings";
 
 export interface SelectableItem {
@@ -119,6 +119,18 @@ const MarqueeText = ({ text }: { text: string }) => {
 	);
 };
 
+const ObsidianIcon = ({ id }: { id: string }) => {
+	const ref = useRef<HTMLSpanElement>(null);
+	useEffect(() => {
+		if (ref.current) {
+			ref.current.innerHTML = '';
+			const svg = getIcon(id);
+			if (svg) ref.current.appendChild(svg);
+		}
+	}, [id]);
+	return <span ref={ref} className="janitor-icon" />;
+};
+
 const FileList = ({app, files, onChange, onOpen, title, showPreview = true}:{
 	app: App,
 	files:SelectableItem[],
@@ -192,9 +204,9 @@ const FileList = ({app, files, onChange, onOpen, title, showPreview = true}:{
 					<MarqueeText text={file.name} />
 				)}
 				{showPreview && file.resourcePath && (
-					<a href="#" className="previewFileIcon" onMouseEnter={handlePreviewEnter(file.resourcePath)} onMouseLeave={handlePreviewLeave}>preview</a>
+					<a href="#" className="previewFileIcon" title="Preview" onMouseEnter={handlePreviewEnter(file.resourcePath)} onMouseLeave={handlePreviewLeave}><ObsidianIcon id="eye" /></a>
 				)}
-				<a href="#" className="openFileIcon" onClick={handleOpen(i)}>open</a>
+				<a href="#" className="openFileIcon" title="Open" onClick={handleOpen(i)}><ObsidianIcon id="arrow-up-right" /></a>
 				</label>
 			</div>
 		))}
