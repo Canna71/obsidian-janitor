@@ -158,7 +158,7 @@ const FileList = ({app, files, onChange, onOpen, title, showPreview = true}:{
 			event: e.nativeEvent,
 			source: 'preview',
 			hoverParent,
-			targetEl: e.currentTarget,
+			targetEl: e.target as HTMLElement,
 			linktext,
 			sourcePath: '/',
 		});
