@@ -36,6 +36,12 @@ export class FileScanner {
 	isCanvas(file: TFile): boolean {
 		return file.extension.toLowerCase() === "canvas" ;
 	}
+
+	isBase(file: TFile): boolean {
+		return file.extension.toLowerCase() === "base";
+
+	}
+
 	async scan() {
 		const allFiles = this.app.vault.getFiles();
 		let exclusionFilters = this.settings.excludedFilesFilters || [];
