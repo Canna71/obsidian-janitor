@@ -137,7 +137,7 @@ export class FileScanner {
 		const regex = /\[\[(.*)\]\]/gm;
 
 		const resources = datas.reduce((acc:{ [key: string]: number; }, data:CanvasData)=>{
-			data.nodes.forEach(node => {
+			(data.nodes ?? []).forEach(node => {
 				let m;
 				const textNode = node as CanvasTextData 
 				switch (node.type) {
