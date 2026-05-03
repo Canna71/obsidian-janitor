@@ -1,5 +1,5 @@
 import { JanitorSettings } from './JanitorSettings';
-import { App, FrontMatterCache, normalizePath, TFile } from 'obsidian';
+import { App, FrontMatterCache, normalizePath, TFile, TFolder } from 'obsidian';
 import { CanvasData, CanvasTextData } from "obsidian/canvas"
 import { asyncFilter, partition } from './Utils';
 import { moment } from "obsidian";
@@ -7,6 +7,7 @@ export interface ScanResults {
 	scanning: boolean,
 	orphans: TFile[],
 	empty: TFile[],
+	emptyFolders: TFolder[],
 	expired: TFile[],
 	big: TFile[]
 }
@@ -44,33 +45,43 @@ export class FileScanner {
 			//@ts-ignore
 			exclusionFilters = exclusionFilters.concat(this.app.vault.config.userIgnoreFilters)
 		}
-		
+
 		const regexes = exclusionFilters.map<RegExp>((filter:string) => new RegExp(filter,"i"));
 		const includeRegexes = (this.settings.includedFilesFilters || [])
 			.map<RegExp>((filter:string) => new RegExp(filter,"i"));
 
-		const files = allFiles.filter(file=>{
-			const excluded = regexes.some(re=>re.exec(file.path));
+		const passesFilters = (path: string) => {
+			const excluded = regexes.some(re => re.exec(path));
 			if (!excluded) return true;
-			return includeRegexes.some(re=>re.exec(file.path));
-		});
+			return includeRegexes.some(re => re.exec(path));
+		};
+
+		const files = allFiles.filter(file => passesFilters(file.path));
 
 		const [notes, others] = partition(files, this.isNote);
 		const frontMatters = this.getFrontMatters(notes);
 		const orphans = this.settings.processOrphans && await this.findOrphans(notes, others, frontMatters) ;
 		const empty = this.settings.processEmpty && await this.findEmpty(files) ;
+		const emptyFolders = this.settings.processEmptyFolders && this.findEmptyFolders(passesFilters);
 		const expired = this.settings.processExpired && this.findExpired(frontMatters) ;
 		const big = this.settings.processBig && this.findBigFiles(files) ;
 
 		const results = {
-			orphans, 
+			orphans,
 			empty,
+			emptyFolders,
 			expired,
 			big,
 			scanning: false
 		} as ScanResults;
 
 		return results;
+	}
+
+	private findEmptyFolders(passesFilters: (path: string) => boolean): TFolder[] {
+		return this.app.vault.getAllLoadedFiles()
+			.filter(f => f instanceof TFolder && f.path !== '/' && (f as TFolder).children.length === 0)
+			.filter(f => passesFilters(f.path)) as TFolder[];
 	}
 
 	private findBigFiles(files: TFile[]) {

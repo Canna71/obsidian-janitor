@@ -1,6 +1,6 @@
 
 import { JanitorView, JanitorViewProps, SelectableItem } from './JanitorView';
-import { App, Modal, TFile } from "obsidian";
+import { App, Modal, TFile, TFolder } from "obsidian";
 import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { ScanResults } from '../FileScanner';
@@ -26,6 +26,7 @@ export class JanitorModal extends Modal {
 			scanning: true,
 			orphans: [],
 			empty: [],
+			emptyFolders: [],
 			big: [],
 			expired: [],
 			onSelectionChange: (i: number, section: string) => {
@@ -93,8 +94,9 @@ export class JanitorModal extends Modal {
 			...this.state,
 			orphans: this.state.orphans && changeSelection(this.state.orphans, names, value),
 			empty:  this.state.empty && changeSelection(this.state.empty , names, value),
+			emptyFolders: this.state.emptyFolders && changeSelection(this.state.emptyFolders, names, value),
 			big:  this.state.big && changeSelection(this.state.big, names, value),
-			expired: this.state.expired && changeSelection(this.state.expired, names, value), 
+			expired: this.state.expired && changeSelection(this.state.expired, names, value),
 		}
 	}
 
@@ -104,6 +106,7 @@ export class JanitorModal extends Modal {
 			scanning: results.scanning,
 			orphans: this.fileToSelectableItem(results.orphans),
 			empty: this.fileToSelectableItem(results.empty),
+			emptyFolders: this.folderToSelectableItem(results.emptyFolders),
 			expired: this.fileToSelectableItem(results.expired),
 			big: this.fileToSelectableItem(results.big)
 		};
@@ -120,6 +123,13 @@ export class JanitorModal extends Modal {
 			resourcePath: JanitorModal.IMAGE_EXTENSIONS.contains(tfile.extension.toLowerCase())
 				? this.app.vault.getResourcePath(tfile)
 				: undefined
+		}));
+	}
+
+	private folderToSelectableItem(folders: TFolder[] | false): SelectableItem[] | false {
+		return folders && folders.map(tfolder => ({
+			name: tfolder.path,
+			selected: false,
 		}));
 	}
 
@@ -146,10 +156,9 @@ export class JanitorModal extends Modal {
 
 
 	extractFiles() {
-		return [this.state.orphans, this.state.empty, this.state.big, this.state.expired]
+		return [this.state.orphans, this.state.empty, this.state.emptyFolders, this.state.big, this.state.expired]
 			.flatMap(list =>
 				list ? list.filter(f => f.selected).map(f => f.name) : []
 			)
-
 	}
 }

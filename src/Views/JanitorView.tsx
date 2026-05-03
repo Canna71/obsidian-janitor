@@ -14,6 +14,7 @@ export interface JanitorViewProps {
 	scanning: boolean,
 	orphans: SelectableItem[] | false,
 	empty: SelectableItem[] | false,
+	emptyFolders: SelectableItem[] | false,
 	big: SelectableItem[] | false,
 	expired: SelectableItem[] | false,
 	onClose: ()=>void,
@@ -26,7 +27,7 @@ export interface JanitorViewProps {
 export const JanitorView = (props: JanitorViewProps) => {
 
 	const { scanning, onClose, onPerform } = props;
-	const somethingSelected = [props.orphans, props.empty, props.expired, props.big]
+	const somethingSelected = [props.orphans, props.empty, props.emptyFolders, props.expired, props.big]
 	.some(files => files && files.some(item=>item.selected))
 
 	const handlePerform = useCallback((operation:OperationType)=>useCallback(()=>{
@@ -54,10 +55,11 @@ export const JanitorView = (props: JanitorViewProps) => {
 	)
 };
 
-function ScanResults({ app, orphans, empty, big, expired, onSelectionChange, onOpen }:
+function ScanResults({ app, orphans, empty, emptyFolders, big, expired, onSelectionChange, onOpen }:
 	{ app: App,
 		orphans: SelectableItem[] | false,
 		empty: SelectableItem[] | false,
+		emptyFolders: SelectableItem[] | false,
 		big: SelectableItem[] | false,
 		expired: SelectableItem[] | false,
 		onSelectionChange:(i:number,section:string)=>void,
@@ -84,6 +86,7 @@ function ScanResults({ app, orphans, empty, big, expired, onSelectionChange, onO
 		<div className="janitor-scan-results">
 			{orphans && orphans.length>0 && <FileList app={app} files={orphans} onChange={handleSelectionChange("orphans")} onOpen={handleOpen("orphans")} title="Orphans" />}
 			{empty && empty.length>0 &&  <FileList app={app} title="Empty" files={empty} onChange={handleSelectionChange("empty")}  onOpen={handleOpen("empty")} showPreview={false} />}
+			{emptyFolders && emptyFolders.length>0 && <FileList app={app} title="Empty Folders" files={emptyFolders} onChange={handleSelectionChange("emptyFolders")} onOpen={handleOpen("emptyFolders")} showPreview={false} />}
 			{expired && expired.length>0 && <FileList app={app} title="Expired" files={expired} onChange={handleSelectionChange("expired")}  onOpen={handleOpen("expired")} />}
 			{big && big.length>0 && <FileList app={app} title="Big" files={big} onChange={handleSelectionChange("big")}  onOpen={handleOpen("big")} />}
 		</div>

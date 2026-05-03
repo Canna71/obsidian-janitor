@@ -90,6 +90,12 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 		);
 		this.createToggle(
 			containerEl,
+			"Process Empty Folders",
+			"Remove folders that contain no files or subfolders",
+			"processEmptyFolders"
+		);
+		this.createToggle(
+			containerEl,
 			"Process Big Files",
 			"Removes files with big dimensions",
 			"processBig"

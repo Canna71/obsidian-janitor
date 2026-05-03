@@ -193,6 +193,7 @@ export default class JanitorPlugin extends Plugin {
 		const foundSomething =
 			(results.orphans && results.orphans.length) ||
 			(results.empty && results.empty.length) ||
+			(results.emptyFolders && results.emptyFolders.length) ||
 			(results.expired && results.expired.length) ||
 			(results.big && results.big.length);
 		this.updateStatusBar("");
@@ -220,6 +221,7 @@ export default class JanitorPlugin extends Plugin {
 			let files = [
 				results.orphans,
 				results.empty,
+				results.emptyFolders,
 				results.expired,
 				results.big,
 			].flatMap((list) => (list ? list.map((file) => file.path) : []));

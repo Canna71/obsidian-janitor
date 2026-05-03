@@ -19,6 +19,7 @@ export interface JanitorSettings {
 	processOrphans: boolean;
 	ignoreBaseFiles: boolean;
 	processEmpty: boolean;
+	processEmptyFolders: boolean;
 	processExpired: boolean;
 	processBig: boolean;
 	honorObsidianExcludedFiles: boolean;
@@ -40,6 +41,7 @@ export const DEFAULT_SETTINGS: JanitorSettings = {
 	processOrphans: true,
 	ignoreBaseFiles: true,
 	processEmpty: true,
+	processEmptyFolders: false,
 	processExpired: true,
 	processBig: true,
 	honorObsidianExcludedFiles: true,
