@@ -1,4 +1,5 @@
 import { ExcludedFilesModal } from './Views/ExcludedFilesModal';
+import { IncludedFilesModal } from './Views/IncludedFilesModal';
 import { DEFAULT_SETTINGS } from "src/JanitorSettings";
 import JanitorPlugin from "./main";
 import { App, PluginSettingTab, Setting } from "obsidian";
@@ -190,7 +191,28 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 			})
 		}
 
+		const inclusionSetting = new Setting(containerEl)
+			.setName("Included Files")
+			.setDesc("Included files will always be processed, even if matched by exclusion rules")
+			.addButton(cb => {
+				cb.setButtonText("Manage");
+				cb.onClick((evt: MouseEvent) => {
+					new IncludedFilesModal(this.app, this.plugin.settings,
+						async (filters: string[]) => {
+							this.plugin.settings.includedFilesFilters = filters;
+							await this.plugin.saveSettings();
+							this.display();
+						})
+						.open();
+				})
+			});
 
+		if (this.plugin.settings.includedFilesFilters && this.plugin.settings.includedFilesFilters.length) {
+			const ul = inclusionSetting.descEl.createEl("ul");
+			this.plugin.settings.includedFilesFilters.forEach(filter => {
+				ul.createEl("li").setText(filter);
+			})
+		}
 
 	}
 

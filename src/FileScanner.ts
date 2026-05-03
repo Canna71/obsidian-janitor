@@ -46,9 +46,13 @@ export class FileScanner {
 		}
 		
 		const regexes = exclusionFilters.map<RegExp>((filter:string) => new RegExp(filter,"i"));
-		
+		const includeRegexes = (this.settings.includedFilesFilters || [])
+			.map<RegExp>((filter:string) => new RegExp(filter,"i"));
+
 		const files = allFiles.filter(file=>{
-			return !regexes.some(re=>re.exec(file.path));
+			const excluded = regexes.some(re=>re.exec(file.path));
+			if (!excluded) return true;
+			return includeRegexes.some(re=>re.exec(file.path));
 		});
 
 		const [notes, others] = partition(files, this.isNote);
