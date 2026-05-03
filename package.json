@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-janitor",
-	"version": "1.1.2",
+	"version": "1.1.3",
 	"description": "Performs cleanup tasks on the Obsidian vault",
 	"main": "main.js",
 	"scripts": {
