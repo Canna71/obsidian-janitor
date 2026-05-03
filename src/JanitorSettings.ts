@@ -19,6 +19,7 @@ export interface JanitorSettings {
 	processOrphans: boolean;
 	ignoreBaseFiles: boolean;
 	processEmpty: boolean;
+	emptyIgnoresFrontmatter: boolean;
 	processEmptyFolders: boolean;
 	processExpired: boolean;
 	processBig: boolean;
@@ -41,6 +42,7 @@ export const DEFAULT_SETTINGS: JanitorSettings = {
 	processOrphans: true,
 	ignoreBaseFiles: true,
 	processEmpty: true,
+	emptyIgnoresFrontmatter: false,
 	processEmptyFolders: false,
 	processExpired: true,
 	processBig: true,

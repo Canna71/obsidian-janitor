@@ -88,6 +88,14 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 			"Remove empty files or files with only whitespace",
 			"processEmpty"
 		);
+		if (this.plugin.settings.processEmpty) {
+			this.createToggle(
+				containerEl,
+				"Ignore Frontmatter",
+				"Consider a note empty if it only contains frontmatter and no body",
+				"emptyIgnoresFrontmatter"
+			);
+		}
 		this.createToggle(
 			containerEl,
 			"Process Empty Folders",

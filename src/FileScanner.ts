@@ -112,9 +112,20 @@ export class FileScanner {
 			if (file.stat.size === 0) return true;
 			const content = await this.app.vault.cachedRead(file);
 			if (!this.whiteSpaceRegExp.test(content)) return true;
+			if (this.settings.emptyIgnoresFrontmatter) {
+				return this.isOnlyFrontmatter(file, content);
+			}
 			return false;
 		});
 		return empty;
+	}
+
+	private isOnlyFrontmatter(file: TFile, content: string): boolean {
+		const cache = this.app.metadataCache.getFileCache(file);
+		const fmSection = cache?.sections?.find(s => s.type === 'yaml');
+		if (!fmSection) return false;
+		const afterFrontmatter = content.slice(fmSection.position.end.offset);
+		return !this.whiteSpaceRegExp.test(afterFrontmatter);
 	}
 
 	private async findOrphans(notes: TFile[], others: TFile[], frontMatters: IFrontMatter[]) {

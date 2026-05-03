@@ -85,7 +85,7 @@ function ScanResults({ app, orphans, empty, emptyFolders, big, expired, onSelect
 	return (
 		<div className="janitor-scan-results">
 			{orphans && orphans.length>0 && <FileList app={app} files={orphans} onChange={handleSelectionChange("orphans")} onOpen={handleOpen("orphans")} title="Orphans" />}
-			{empty && empty.length>0 &&  <FileList app={app} title="Empty" files={empty} onChange={handleSelectionChange("empty")}  onOpen={handleOpen("empty")} showPreview={false} />}
+			{empty && empty.length>0 &&  <FileList app={app} title="Empty" files={empty} onChange={handleSelectionChange("empty")}  onOpen={handleOpen("empty")} />}
 			{emptyFolders && emptyFolders.length>0 && <FileList app={app} title="Empty Folders" files={emptyFolders} onChange={handleSelectionChange("emptyFolders")} onOpen={handleOpen("emptyFolders")} showPreview={false} />}
 			{expired && expired.length>0 && <FileList app={app} title="Expired" files={expired} onChange={handleSelectionChange("expired")}  onOpen={handleOpen("expired")} />}
 			{big && big.length>0 && <FileList app={app} title="Big" files={big} onChange={handleSelectionChange("big")}  onOpen={handleOpen("big")} />}
