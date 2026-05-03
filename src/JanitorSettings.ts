@@ -17,6 +17,7 @@ export interface JanitorSettings {
 	sizeLimitKb: number;
 
 	processOrphans: boolean;
+	ignoreBaseFiles: boolean;
 	processEmpty: boolean;
 	processExpired: boolean;
 	processBig: boolean;
@@ -36,6 +37,7 @@ export const DEFAULT_SETTINGS: JanitorSettings = {
 	expiredDateFormat: "YYYY-MM-DD",
 	sizeLimitKb: 1024,
 	processOrphans: true,
+	ignoreBaseFiles: true,
 	processEmpty: true,
 	processExpired: true,
 	processBig: true,

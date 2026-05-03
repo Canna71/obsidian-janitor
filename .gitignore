@@ -23,4 +23,5 @@ data.json
 
 # Exclude AI Agents skills
 .agents
+.claude
 skills-lock.json

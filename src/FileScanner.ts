@@ -36,12 +36,6 @@ export class FileScanner {
 	isCanvas(file: TFile): boolean {
 		return file.extension.toLowerCase() === "canvas" ;
 	}
-
-	isBase(file: TFile): boolean {
-		return file.extension.toLowerCase() === "base";
-
-	}
-
 	async scan() {
 		const allFiles = this.app.vault.getFiles();
 		let exclusionFilters = this.settings.excludedFilesFilters || [];
@@ -109,6 +103,10 @@ export class FileScanner {
 	}
 
 	private async findOrphans(notes: TFile[], others: TFile[], frontMatters: IFrontMatter[]) {
+		if (this.settings.ignoreBaseFiles) {
+			others = others.filter(file => file.extension.toLowerCase() !== "base");
+		}
+
 		const resolvedLinks: { [key: string]: number; } = this.getResolvedLinks();
 
 		const canvasResources = await this.getCanvasResources(notes.filter(this.isCanvas));

@@ -71,6 +71,16 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 			"Remove media and attachments that are not in use",
 			"processOrphans"
 		);
+
+		if (this.plugin.settings.processOrphans) {
+			this.createToggle(
+				containerEl,
+				"Ignore Bases (.base files)",
+				"Exclude Obsidian Bases files from orphan detection",
+				"ignoreBaseFiles"
+			);
+		}
+
 		this.createToggle(
 			containerEl,
 			"Process Empty",
