@@ -110,10 +110,15 @@ export class JanitorModal extends Modal {
 		this.render();
 	}
 
+	private static readonly IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'avif', 'svg'];
+
 	private fileToSelectableItem(files: TFile[] | false): SelectableItem[]|false {
 		return files && files.map(tfile => ({
 			name: tfile.path,
-			selected: false
+			selected: false,
+			resourcePath: JanitorModal.IMAGE_EXTENSIONS.contains(tfile.extension.toLowerCase())
+				? this.app.vault.getResourcePath(tfile)
+				: undefined
 		}));
 	}
 
@@ -127,10 +132,9 @@ export class JanitorModal extends Modal {
 
 	onOpen() {
 		const { contentEl } = this;
-
+		this.modalEl.addClass('janitor-main-modal');
 		this.root = createRoot(contentEl);
 		this.render();
-
 	}
 
 	onClose() {

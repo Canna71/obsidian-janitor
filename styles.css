@@ -57,11 +57,54 @@ If your plugin does not need CSS, delete this file.
 	display: flex;
 }
 
-.janitor-file span {
+.janitor-file-name {
+	flex: 1;
+	min-width: 0;
 	overflow: hidden;
-	text-overflow: ellipsis;
+	margin-right: 9em;
+}
+
+.janitor-file-name-text {
+	display: inline-block;
 	white-space: nowrap;
-	margin-right: 4em;
+}
+
+.janitor-file:hover .janitor-file-name-text {
+	animation: janitor-marquee 4s ease-in-out infinite alternate;
+}
+
+@keyframes janitor-marquee {
+	0%, 15%  { transform: translateX(0); }
+	85%, 100% { transform: translateX(var(--marquee-offset, 0px)); }
+}
+
+.previewFileIcon {
+	right: 4em;
+	position: absolute;
+	visibility: hidden;
+}
+
+.janitor-file:hover .previewFileIcon {
+	visibility: visible;
+}
+
+.janitor-preview-overlay {
+	position: fixed;
+	z-index: 9999;
+	padding: 6px;
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+	pointer-events: none;
+}
+
+.janitor-preview-overlay img {
+	display: block;
+	max-width: 200px;
+	max-height: 200px;
+	object-fit: contain;
+	border-radius: 3px;
 }
 
 .janitor-file:hover .openFileIcon {
@@ -72,9 +115,13 @@ If your plugin does not need CSS, delete this file.
 	outline: auto;
 }
 
+.janitor-main-modal {
+	width: min(700px, 90vw);
+}
+
 .janitor-scan-results {
 	overflow-y: auto;
-	max-height:250px;
+	max-height: 450px;
 }
 
 .janitor-files-wrapper {
