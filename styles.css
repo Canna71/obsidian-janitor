@@ -78,6 +78,10 @@ If your plugin does not need CSS, delete this file.
 	85%, 100% { transform: translateX(var(--marquee-offset, 0px)); }
 }
 
+.janitor-md-preview-link {
+	display: contents;
+}
+
 .previewFileIcon {
 	right: 4em;
 	position: absolute;

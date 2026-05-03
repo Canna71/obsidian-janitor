@@ -184,12 +184,15 @@ const FileList = ({app, files, onChange, onOpen, title, showPreview = true}:{
 					value={file.name}
 					onChange={handleOnChange(i)}
 					type="checkbox" />
-				<MarqueeText text={file.name} />
+				{showPreview && !file.resourcePath && file.name.endsWith('.md') ? (
+					<a href="#" className="internal-link janitor-md-preview-link" onMouseOver={handleMarkdownHover(file.name.replace(/\.md$/, ''))} onClick={(e) => e.preventDefault()}>
+						<MarqueeText text={file.name} />
+					</a>
+				) : (
+					<MarqueeText text={file.name} />
+				)}
 				{showPreview && file.resourcePath && (
 					<a href="#" className="previewFileIcon" onMouseEnter={handlePreviewEnter(file.resourcePath)} onMouseLeave={handlePreviewLeave}>preview</a>
-				)}
-				{showPreview && !file.resourcePath && file.name.endsWith('.md') && (
-					<a href="#" className="previewFileIcon" onMouseOver={handleMarkdownHover(file.name.replace(/\.md$/, ''))}>preview</a>
 				)}
 				<a href="#" className="openFileIcon" onClick={handleOpen(i)}>open</a>
 				</label>
