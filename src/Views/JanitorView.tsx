@@ -126,7 +126,6 @@ const FileList = ({app, files, onChange, onOpen, title, showPreview = true}:{
 	) => {
 
 	const [preview, setPreview] = useState<{ resourcePath: string; x: number; y: number } | null>(null);
-	// stable hover-parent object for the Page Preview popup lifecycle
 	const hoverParent = useRef<{hoverPopover: any}>({ hoverPopover: null }).current;
 
 	const handleOnChange = useCallback((i:number)=>
@@ -145,15 +144,11 @@ const FileList = ({app, files, onChange, onOpen, title, showPreview = true}:{
 		,[onChange,i])
 	,[onChange]);
 
-	const handlePreviewMouseDown = useCallback((resourcePath: string) => (e: React.MouseEvent) => {
-		e.preventDefault();
+	const handlePreviewEnter = useCallback((resourcePath: string) => (e: React.MouseEvent) => {
 		setPreview({ resourcePath, x: e.clientX, y: e.clientY });
-		const hide = () => {
-			setPreview(null);
-			document.removeEventListener('mouseup', hide);
-		};
-		document.addEventListener('mouseup', hide);
 	}, []);
+
+	const handlePreviewLeave = useCallback(() => setPreview(null), []);
 
 	const handleMarkdownHover = useCallback((linktext: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
 		app.workspace.trigger('hover-link', {
@@ -188,7 +183,7 @@ const FileList = ({app, files, onChange, onOpen, title, showPreview = true}:{
 					type="checkbox" />
 				<MarqueeText text={file.name} />
 				{showPreview && file.resourcePath && (
-					<a href="#" className="previewFileIcon" onMouseDown={handlePreviewMouseDown(file.resourcePath)}>preview</a>
+					<a href="#" className="previewFileIcon" onMouseEnter={handlePreviewEnter(file.resourcePath)} onMouseLeave={handlePreviewLeave}>preview</a>
 				)}
 				{showPreview && !file.resourcePath && file.name.endsWith('.md') && (
 					<a href="#" className="previewFileIcon" onMouseOver={handleMarkdownHover(file.name.replace(/\.md$/, ''))}>preview</a>

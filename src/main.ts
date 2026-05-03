@@ -113,9 +113,10 @@ export default class JanitorPlugin extends Plugin {
 		// 	}
 		// })
 
-		this.app.metadataCache.on("resolved", () => {
+		this.app.metadataCache.on("resolved", async () => {
 			if (this.settings.runAtStartup && !this.initialScanDone) {
 				this.initialScanDone = true;
+				await this.waitForSyncIfNeeded();
 				this.scanFiles();
 			}
 		});
@@ -236,6 +237,21 @@ export default class JanitorPlugin extends Plugin {
 					? `${processingResult.notDeletedFiles} files not deleted`
 					: "")
 		);
+	}
+
+	private waitForSyncIfNeeded(): Promise<void> {
+		const syncPlugin = (this.app as any).internalPlugins?.plugins?.['sync']?.instance;
+		if (!syncPlugin || !syncPlugin.syncing) {
+			return Promise.resolve();
+		}
+		return new Promise(resolve => {
+			const handler = syncPlugin.on('status-change', () => {
+				if (!syncPlugin.syncing) {
+					syncPlugin.offref(handler);
+					resolve();
+				}
+			});
+		});
 	}
 
 	onunload() {}
