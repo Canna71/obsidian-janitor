@@ -1,6 +1,6 @@
 
 import { JanitorView, JanitorViewProps, SelectableItem } from './JanitorView';
-import { App, Modal,  TFile } from "obsidian";
+import { App, Modal, TFile } from "obsidian";
 import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { ScanResults } from '../FileScanner';
@@ -38,9 +38,10 @@ export class JanitorModal extends Modal {
 			onSettingChange: (setting: string, value: any) => {
 				this.onSettingChange(setting, value);
 			},
-			onOpen:  (i: number, section: string) => {
+			onOpen: (i: number, section: string) => {
 				this.handleOpen(i, section);
-			}
+			},
+			app: this.app,
 		};
 	}
 	perform(operation:OperationType) {

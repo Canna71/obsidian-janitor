@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { App } from "obsidian";
 import { OperationType } from "src/JanitorSettings";
 
 export interface SelectableItem {
@@ -9,6 +10,7 @@ export interface SelectableItem {
 	resourcePath?: string
 }
 export interface JanitorViewProps {
+	app: App,
 	scanning: boolean,
 	orphans: SelectableItem[] | false,
 	empty: SelectableItem[] | false,
@@ -17,9 +19,8 @@ export interface JanitorViewProps {
 	onClose: ()=>void,
 	onSelectionChange: (i:number,section:string)=>void,
 	onOpen: (i:number,section:string)=>void,
-
 	onPerform(operation:string):void,
-	onSettingChange:(setting:string, value:any)=>void
+	onSettingChange:(setting:string, value:any)=>void,
 }
 
 export const JanitorView = (props: JanitorViewProps) => {
@@ -53,13 +54,14 @@ export const JanitorView = (props: JanitorViewProps) => {
 	)
 };
 
-function ScanResults({ orphans,empty,big,expired, onSelectionChange, onOpen }:
-	{ orphans: SelectableItem[] | false,
+function ScanResults({ app, orphans, empty, big, expired, onSelectionChange, onOpen }:
+	{ app: App,
+		orphans: SelectableItem[] | false,
 		empty: SelectableItem[] | false,
 		big: SelectableItem[] | false,
 		expired: SelectableItem[] | false,
 		onSelectionChange:(i:number,section:string)=>void,
-		onOpen:(i:number,section:string)=>void
+		onOpen:(i:number,section:string)=>void,
 	}) {
 
 	const handleSelectionChange =
@@ -80,10 +82,10 @@ function ScanResults({ orphans,empty,big,expired, onSelectionChange, onOpen }:
 
 	return (
 		<div className="janitor-scan-results">
-			{orphans && orphans.length>0 && <FileList files={orphans} onChange={handleSelectionChange("orphans")} onOpen={handleOpen("orphans")} title="Orphans" />}
-			{empty && empty.length>0 &&  <FileList title="Empty" files={empty} onChange={handleSelectionChange("empty")}  onOpen={handleOpen("empty")} />}
-			{expired && expired.length>0 && <FileList title="Expired" files={expired} onChange={handleSelectionChange("expired")}  onOpen={handleOpen("expired")} />}
-			{big && big.length>0 && <FileList title="Big" files={big} onChange={handleSelectionChange("big")}  onOpen={handleOpen("big")} />}
+			{orphans && orphans.length>0 && <FileList app={app} files={orphans} onChange={handleSelectionChange("orphans")} onOpen={handleOpen("orphans")} title="Orphans" />}
+			{empty && empty.length>0 &&  <FileList app={app} title="Empty" files={empty} onChange={handleSelectionChange("empty")}  onOpen={handleOpen("empty")} />}
+			{expired && expired.length>0 && <FileList app={app} title="Expired" files={expired} onChange={handleSelectionChange("expired")}  onOpen={handleOpen("expired")} />}
+			{big && big.length>0 && <FileList app={app} title="Big" files={big} onChange={handleSelectionChange("big")}  onOpen={handleOpen("big")} />}
 		</div>
 	)
 }
@@ -114,13 +116,17 @@ const MarqueeText = ({ text }: { text: string }) => {
 	);
 };
 
-const FileList = ({files, onChange, onOpen, title}:{files:SelectableItem[],
+const FileList = ({app, files, onChange, onOpen, title}:{
+	app: App,
+	files:SelectableItem[],
 	onChange:(i:number)=>void,
 	onOpen:(i:number)=>void,
 	title: string}
 	) => {
 
 	const [preview, setPreview] = useState<{ resourcePath: string; x: number; y: number } | null>(null);
+	// stable hover-parent object for the Page Preview popup lifecycle
+	const hoverParent = useRef<{hoverPopover: any}>({ hoverPopover: null }).current;
 
 	const handleOnChange = useCallback((i:number)=>
 		useCallback(
@@ -148,6 +154,17 @@ const FileList = ({files, onChange, onOpen, title}:{files:SelectableItem[],
 		document.addEventListener('mouseup', hide);
 	}, []);
 
+	const handleMarkdownHover = useCallback((linktext: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+		app.workspace.trigger('hover-link', {
+			event: e.nativeEvent,
+			source: 'preview',
+			hoverParent,
+			targetEl: e.currentTarget,
+			linktext,
+			sourcePath: '/',
+		});
+	}, [app, hoverParent]);
+
 	const allSelected = files.every(file => file.selected);
 	const numSelected = files.filter(file => file.selected).length;
 
@@ -171,6 +188,9 @@ const FileList = ({files, onChange, onOpen, title}:{files:SelectableItem[],
 				<MarqueeText text={file.name} />
 				{file.resourcePath && (
 					<a href="#" className="previewFileIcon" onMouseDown={handlePreviewMouseDown(file.resourcePath)}>preview</a>
+				)}
+				{!file.resourcePath && file.name.endsWith('.md') && (
+					<a href="#" className="previewFileIcon" onMouseOver={handleMarkdownHover(file.name.replace(/\.md$/, ''))}>preview</a>
 				)}
 				<a href="#" className="openFileIcon" onClick={handleOpen(i)}>open</a>
 				</label>

@@ -119,6 +119,11 @@ If your plugin does not need CSS, delete this file.
 	width: min(700px, 90vw);
 }
 
+/* Ensure hover preview popover appears above the modal overlay */
+.popover.hover-popover {
+	z-index: calc(var(--layer-modal, 200) + 10);
+}
+
 .janitor-scan-results {
 	overflow-y: auto;
 	max-height: 450px;
