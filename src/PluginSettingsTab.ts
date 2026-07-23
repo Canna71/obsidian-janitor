@@ -19,6 +19,18 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 
 		containerEl.createEl("h2", { text: "Janitor Settings" });
 
+		new Setting(containerEl)
+		.setName("Destination folder")
+		.setDesc("Folder inside the vault where cleaned files will be moved.")
+		.addText(text =>
+		text
+		.setPlaceholder("Archive")
+		.setValue(this.plugin.settings.destinationFolder)
+		.onChange(async value => {
+			this.plugin.settings.destinationFolder = value.trim();
+			await this.plugin.saveSettings();
+		})
+		);
 
 		new Setting(containerEl)
 			.setName("Add Ribbon Icon")

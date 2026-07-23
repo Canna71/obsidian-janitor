@@ -48,6 +48,15 @@ export const JanitorView = (props: JanitorViewProps) => {
 					<button tabIndex={1} style={{visibility: somethingSelected ? 'visible' : 'hidden' }} className="" onClick={handles[OperationType.Trash]} title="Put files in the Obsidian .trash" >Trash (Obsidian)</button>
 					<button tabIndex={1} style={{visibility: somethingSelected ? 'visible' : 'hidden' }} className="" onClick={handles[OperationType.TrashSystem]} title="Put files in the OS' trash">Trash (System)</button>
 					<button tabIndex={1} style={{visibility: somethingSelected ? 'visible' : 'hidden' }} className="" onClick={handles[OperationType.Delete]} title="Permanently delete files">Delete</button>
+					<button
+					tabIndex={1}
+					style={{visibility: somethingSelected ? 'visible' : 'hidden' }}
+					className=""
+					onClick={handles[OperationType.Move]}
+					title="Move files into a vault folder"
+					>
+					Archive
+					</button>
 					<button tabIndex={1} className="mod-cta" onClick={onClose}>Cancel</button>
 				</div>
 			</div>
@@ -151,13 +160,14 @@ const FileList = ({app, files, onChange, onOpen, title, showPreview = true}:{
 		,[onChange,i])
 	,[onChange]);
 
-	const handleOpen = useCallback((i:number)=>
-		useCallback(
-			()=>{
-				onOpen(i);
-			}
-		,[onChange,i])
-	,[onChange]);
+	const handleOpen = useCallback(
+		(i: number) =>
+		(e: React.MouseEvent<HTMLAnchorElement>) => {
+			e.preventDefault();
+			onOpen(i);
+		},
+		[onOpen]
+	);
 
 	const handlePreviewEnter = useCallback((resourcePath: string) => (e: React.MouseEvent) => {
 		setPreview({ resourcePath, x: e.clientX, y: e.clientY });
@@ -197,8 +207,13 @@ const FileList = ({app, files, onChange, onOpen, title, showPreview = true}:{
 					onChange={handleOnChange(i)}
 					type="checkbox" />
 				{showPreview && !file.resourcePath && file.name.endsWith('.md') ? (
-					<a href="#" className="internal-link janitor-md-preview-link" onMouseOver={handleMarkdownHover(file.name.replace(/\.md$/, ''))} onClick={(e) => e.preventDefault()}>
-						<MarqueeText text={file.name} />
+					<a
+					href="#"
+					className="internal-link janitor-md-preview-link"
+					onMouseOver={handleMarkdownHover(file.name.replace(/\.md$/, ''))}
+					onClick={handleOpen(i)}
+					>
+					<MarqueeText text={file.name} />
 					</a>
 				) : (
 					<MarqueeText text={file.name} />
@@ -206,7 +221,14 @@ const FileList = ({app, files, onChange, onOpen, title, showPreview = true}:{
 				{showPreview && file.resourcePath && (
 					<a href="#" className="previewFileIcon" title="Preview" onMouseEnter={handlePreviewEnter(file.resourcePath)} onMouseLeave={handlePreviewLeave}><ObsidianIcon id="eye" /></a>
 				)}
-				<a href="#" className="openFileIcon" title="Open" onClick={handleOpen(i)}><ObsidianIcon id="arrow-up-right" /></a>
+				<a
+				href="#"
+				className="openFileIcon"
+				title="Open"
+				onClick={handleOpen(i)}
+				>
+				<ObsidianIcon id="arrow-up-right" />
+				</a>
 				</label>
 			</div>
 		))}
