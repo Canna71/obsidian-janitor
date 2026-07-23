@@ -231,13 +231,16 @@ export default class JanitorPlugin extends Plugin {
 	}
 
 	async perform(operation: OperationType, files: string[]) {
-		const fileProcessor = new FileProcessor(this.app);
+		const fileProcessor = new FileProcessor(
+			this.app,
+			this.settings
+		);
 		const processingResult = await fileProcessor.process(files, operation);
 		new Notice(
-			`${processingResult.deletedFiles} files deleted.` +
-				(processingResult.notDeletedFiles
-					? `${processingResult.notDeletedFiles} files not deleted`
-					: "")
+			`${processingResult.deletedFiles} files processed.` +
+			(processingResult.notDeletedFiles
+			? ` ${processingResult.notDeletedFiles} files could not be processed.`
+			: "")
 		);
 	}
 

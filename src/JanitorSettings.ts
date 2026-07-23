@@ -1,7 +1,8 @@
 export enum OperationType {
 	Trash = "trash",
 	TrashSystem = "trash-system",
-	Delete = "delete"
+	Delete = "delete",
+	Move = "move",
 }
 export interface JanitorSettings {
 
@@ -26,6 +27,7 @@ export interface JanitorSettings {
 	honorObsidianExcludedFiles: boolean;
 	excludedFilesFilters: string[];
 	includedFilesFilters: string[];
+	destinationFolder: string;
 }
 
 export const DEFAULT_SETTINGS: JanitorSettings = {
@@ -48,5 +50,6 @@ export const DEFAULT_SETTINGS: JanitorSettings = {
 	processBig: true,
 	honorObsidianExcludedFiles: true,
 	excludedFilesFilters: [],
-	includedFilesFilters: []
+	includedFilesFilters: [],
+	destinationFolder: "Archive",
 }
