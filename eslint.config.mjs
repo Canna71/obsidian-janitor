@@ -36,6 +36,13 @@ export default [
 			"@typescript-eslint/no-unsafe-call": "off",
 			"@typescript-eslint/no-unsafe-member-access": "off",
 			"@typescript-eslint/no-unsafe-return": "off",
+
+			// KB is a unit; YYYY-MM-DD is a moment.js format token, and the
+			// rule splits the sentence on the preceding "e.g." either way.
+			"obsidianmd/ui/sentence-case": [
+				"warn",
+				{ acronyms: ["KB", "YYYY-MM-DD"] },
+			],
 		},
 	},
 	{

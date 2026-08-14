@@ -40,38 +40,38 @@ export default class JanitorPlugin extends Plugin {
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
 			id: "scan-files",
-			name: "Scan Files",
+			name: "Scan files",
 			callback: () => {
 				this.scanFiles();
 			},
 		});
 		this.addCommand({
 			id: "scan-files-noprompt",
-			name: "Scan Files (without prompt)",
+			name: "Scan files (without prompt)",
 			callback: () => {
 				this.scanFiles(false, true);
 			},
 		});
 		this.addCommand({
 			id: "scan-files-with-prompt",
-			name: "Scan Files (with prompt)",
+			name: "Scan files (with prompt)",
 			callback: () => {
 				this.scanFiles(true, false);
 			},
 		});
 		this.addCommand({
 			id: "scan-vault-orphans",
-			name: "Scan Vault (Orphans)",
+			name: "Scan vault (orphans)",
 			callback: () => { this.scanFilesFor("orphans"); },
 		});
 		this.addCommand({
 			id: "scan-vault-expired",
-			name: "Scan Vault (Expired)",
+			name: "Scan vault (expired)",
 			callback: () => { this.scanFilesFor("expired"); },
 		});
 		this.addCommand({
 			id: "scan-vault-big",
-			name: "Scan Vault (Big Files)",
+			name: "Scan vault (big files)",
 			callback: () => { this.scanFilesFor("big"); },
 		});
 

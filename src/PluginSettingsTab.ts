@@ -18,7 +18,7 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("Add Ribbon Icon")
+			.setName("Add ribbon icon")
 			.setDesc("Adds an icon to the ribbon to launch scan")
 			.addToggle(bool => bool
 				.setValue(this.plugin.settings.addRibbonIcon)
@@ -36,7 +36,7 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 
 		this.createToggle(
 			containerEl,
-			"Run at Startup",
+			"Run at startup",
 			"The plugin will perform a scan automatically everytime you open a vault.",
 			"runAtStartup"
 		);
@@ -44,13 +44,13 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 
 		this.createToggle(
 			containerEl,
-			"Ask Confirmation",
+			"Ask confirmation",
 			"The user will be able to select which files to remove",
 			"promptUser"
 		);
 
 		new Setting(containerEl)
-			.setName("Always Prompt for big files")
+			.setName("Always prompt for big files")
 			.setDesc("Always prompt before deleting big files")
 			.addToggle((bool) =>
 				bool
@@ -65,7 +65,7 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 
 		this.createToggle(
 			containerEl,
-			"Process Orphans",
+			"Process orphans",
 			"Remove media and attachments that are not in use",
 			"processOrphans"
 		);
@@ -73,7 +73,7 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 		if (this.plugin.settings.processOrphans) {
 			this.createToggle(
 				containerEl,
-				"Ignore Bases (.base files)",
+				"Ignore bases (.base files)",
 				"Exclude Obsidian Bases files from orphan detection",
 				"ignoreBaseFiles"
 			);
@@ -81,34 +81,34 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 
 		this.createToggle(
 			containerEl,
-			"Process Empty",
+			"Process empty",
 			"Remove empty files or files with only whitespace",
 			"processEmpty"
 		);
 		if (this.plugin.settings.processEmpty) {
 			this.createToggle(
 				containerEl,
-				"Ignore Frontmatter",
+				"Ignore frontmatter",
 				"Consider a note empty if it only contains frontmatter and no body",
 				"emptyIgnoresFrontmatter"
 			);
 		}
 		this.createToggle(
 			containerEl,
-			"Process Empty Folders",
+			"Process empty folders",
 			"Remove folders that contain no files or subfolders",
 			"processEmptyFolders"
 		);
 		this.createToggle(
 			containerEl,
-			"Process Big Files",
+			"Process big files",
 			"Removes files with big dimensions",
 			"processBig"
 		);
 
 		if (this.plugin.settings.processBig) {
 			new Setting(containerEl)
-				.setName("File Size Limit (KB)")
+				.setName("File size limit (KB)")
 				.setDesc(
 					"Files larger than this size will be considered for removal."
 				)
@@ -130,18 +130,18 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 
 		this.createToggle(
 			containerEl,
-			"Process Expired",
+			"Process expired",
 			"Remove notes that have expired",
 			"processExpired"
 		);
 
 		if (this.plugin.settings.processExpired) {
-			new Setting(containerEl).setName("Expiration Processing").setHeading();
+			new Setting(containerEl).setName("Expiration processing").setHeading();
 
 			new Setting(containerEl)
-				.setName("Metadata Attribute")
+				.setName("Metadata attribute")
 				.setDesc(
-					"The frontMatter key in which to search for expiration date"
+					"The frontmatter key in which to search for expiration date"
 				)
 				.addText((date) =>
 					date
@@ -153,7 +153,7 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 						})
 				);
 			new Setting(containerEl)
-				.setName("Date Format")
+				.setName("Date format")
 				.setDesc(
 					"The format in which the expiration date is stored (e.g. YYYY-MM-DD)"
 				)
@@ -168,19 +168,19 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 				);
 		}
 
-		new Setting(containerEl).setName("File Exclusions").setHeading();
+		new Setting(containerEl).setName("File exclusions").setHeading();
 
 		this.createToggle(
 			containerEl,
-			"Ignore Obsidian Excluded Files",
-			"Does not process files matching the Excluded Files filters in Obsidian Settings",
+			"Ignore Obsidian excluded files",
+			"Does not process files matching the excluded files filters in Obsidian settings",
 			"honorObsidianExcludedFiles"
 		);
 
 		
 
 		const exclusionSetting = new Setting(containerEl)
-		.setName("Excluded Files")
+		.setName("Excluded files")
 		.setDesc("Excluded files will not be processed")
 		.addButton(cb => {
 			cb.setButtonText("Manage");
@@ -203,7 +203,7 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 		}
 
 		const inclusionSetting = new Setting(containerEl)
-			.setName("Included Files")
+			.setName("Included files")
 			.setDesc("Included files will always be processed, even if matched by exclusion rules")
 			.addButton(cb => {
 				cb.setButtonText("Manage");

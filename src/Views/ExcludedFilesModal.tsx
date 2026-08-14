@@ -18,7 +18,7 @@ export class ExcludedFilesModal extends Modal {
 	constructor(app: App, settings: JanitorSettings, onFiltersChanged: (filters:string[])=>void) {
 		super(app);
 		this.settings = settings;
-		this.titleEl.setText("Janitor Excluded Files");
+		this.titleEl.setText("Janitor excluded files");
 		this.onFiltersChanged = onFiltersChanged;
 	}
 

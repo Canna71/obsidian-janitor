@@ -17,7 +17,7 @@ export class IncludedFilesModal extends Modal {
 	constructor(app: App, settings: JanitorSettings, onFiltersChanged: (filters: string[]) => void) {
 		super(app);
 		this.settings = settings;
-		this.titleEl.setText("Janitor Included Files");
+		this.titleEl.setText("Janitor included files");
 		this.onFiltersChanged = onFiltersChanged;
 	}
 
