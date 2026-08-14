@@ -15,6 +15,11 @@ import { FileProcessor } from "src/FileProcessor";
 import moment from "moment";
 
 export default class JanitorPlugin extends Plugin {
+	/** How long the metadata cache must stay quiet before the startup scan runs. */
+	private static readonly CACHE_SETTLE_MS = 2000;
+	/** Upper bound on waiting for the cache, so the scan always eventually runs. */
+	private static readonly CACHE_TIMEOUT_MS = 120000;
+
 	settings: JanitorSettings;
 	statusBarItemEl: HTMLElement;
 	ribbonIconEl: HTMLElement;
@@ -107,18 +112,70 @@ export default class JanitorPlugin extends Plugin {
 
 		this.addSettingTab(new JanitorSettingsTab(this.app, this));
 
-		// this.app.workspace.onLayoutReady(()=>{
-		// 	if (this.settings.runAtStartup) {
-		// 		this.scanFiles();
-		// 	}
-		// })
-
-		this.app.metadataCache.on("resolved", async () => {
-			if (this.settings.runAtStartup && !this.initialScanDone) {
-				this.initialScanDone = true;
-				await this.waitForSyncIfNeeded();
-				this.scanFiles();
+		this.app.workspace.onLayoutReady(() => {
+			if (!this.settings.runAtStartup || this.initialScanDone) {
+				return;
 			}
+			this.initialScanDone = true;
+			void this.runStartupScan();
+		});
+	}
+
+	private async runStartupScan() {
+		await this.waitForSyncIfNeeded();
+		await this.waitForMetadataCache();
+		this.scanFiles();
+	}
+
+	/**
+	 * `metadataCache.on("resolved")` fires every time the cache's work queue
+	 * drains, which happens repeatedly while a large vault is indexed at
+	 * startup. Scanning on the first one reads a half-built `resolvedLinks`,
+	 * so attachments belonging to not-yet-parsed notes are reported as orphans.
+	 *
+	 * Wait until every markdown file has an entry in `resolvedLinks` and the
+	 * cache has then stayed quiet for a moment before letting the scan run.
+	 */
+	private waitForMetadataCache(): Promise<void> {
+		return new Promise((resolve) => {
+			let settleTimer: number | undefined;
+			let timeoutTimer: number | undefined;
+			let settled = false;
+
+			const finish = () => {
+				if (settled) return;
+				settled = true;
+				window.clearTimeout(settleTimer);
+				window.clearTimeout(timeoutTimer);
+				this.app.metadataCache.offref(ref);
+				resolve();
+			};
+
+			// Obsidian keys `resolvedLinks` by every markdown file it has
+			// parsed, so a short count is proof the index is still filling in.
+			const indexIsComplete = () =>
+				Object.keys(this.app.metadataCache.resolvedLinks).length >=
+				this.app.vault.getMarkdownFiles().length;
+
+			const check = () => {
+				window.clearTimeout(settleTimer);
+				if (!indexIsComplete()) return;
+				settleTimer = window.setTimeout(
+					finish,
+					JanitorPlugin.CACHE_SETTLE_MS
+				);
+			};
+
+			const ref = this.app.metadataCache.on("resolved", check);
+			this.registerEvent(ref);
+
+			// Sync or another plugin can keep the cache busy indefinitely.
+			// Scan anyway rather than never running the startup scan at all.
+			timeoutTimer = window.setTimeout(
+				finish,
+				JanitorPlugin.CACHE_TIMEOUT_MS
+			);
+			check();
 		});
 	}
 
