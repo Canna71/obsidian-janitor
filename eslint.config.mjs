@@ -57,4 +57,13 @@ export default [
 			"obsidianmd/prefer-file-manager-trash-file": "off",
 		},
 	},
+	{
+		// The declarative settings API landed in Obsidian 1.13.0 and this
+		// plugin supports 1.4.4, so the settings tab stays on display(). Revisit
+		// along with minAppVersion.
+		files: ["src/PluginSettingsTab.ts"],
+		rules: {
+			"obsidianmd/settings-tab/prefer-setting-definitions": "off",
+		},
+	},
 ];
