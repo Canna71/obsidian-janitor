@@ -17,9 +17,6 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "Janitor Settings" });
-
-
 		new Setting(containerEl)
 			.setName("Add Ribbon Icon")
 			.setDesc("Adds an icon to the ribbon to launch scan")
@@ -139,7 +136,7 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 		);
 
 		if (this.plugin.settings.processExpired) {
-			containerEl.createEl("h3", { text: "Expiration Processing" });
+			new Setting(containerEl).setName("Expiration Processing").setHeading();
 
 			new Setting(containerEl)
 				.setName("Metadata Attribute")
@@ -171,7 +168,7 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 				);
 		}
 
-		containerEl.createEl("h3", { text: "File Exclusions" });
+		new Setting(containerEl).setName("File Exclusions").setHeading();
 
 		this.createToggle(
 			containerEl,
