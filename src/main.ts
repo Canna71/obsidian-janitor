@@ -4,6 +4,7 @@ import { JanitorModal } from "./Views/JanitorModal";
 
 import {
 	MarkdownView,
+	moment,
 	Notice,
 	Plugin,
 	TFile,
@@ -12,7 +13,6 @@ import { FileScanner } from "src/FileScanner";
 import { DEFAULT_SETTINGS, JanitorSettings } from "src/JanitorSettings";
 import JanitorSettingsTab from "src/PluginSettingsTab";
 import { FileProcessor } from "src/FileProcessor";
-import moment from "moment";
 
 export default class JanitorPlugin extends Plugin {
 	/** How long the metadata cache must stay quiet before the startup scan runs. */
