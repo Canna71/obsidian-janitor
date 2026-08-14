@@ -18,6 +18,12 @@ export class FileProcessor {
 			if (tfile) {
 				try {
 
+					// obsidianmd/prefer-file-manager-trash-file asks for
+					// FileManager.trashFile(), so that the user's "Deleted files"
+					// preference decides the destination. Janitor asks the user which
+					// destination they want instead - the review modal offers all three
+					// as separate buttons - so honouring that choice means addressing
+					// the vault directly.
 					switch (operation) {
 
 						case OperationType.TrashSystem:

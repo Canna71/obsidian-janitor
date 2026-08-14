@@ -80,8 +80,9 @@ export class FileScanner {
 
 	private findEmptyFolders(passesFilters: (path: string) => boolean): TFolder[] {
 		return this.app.vault.getAllLoadedFiles()
-			.filter(f => f instanceof TFolder && f.path !== '/' && (f as TFolder).children.length === 0)
-			.filter(f => passesFilters(f.path)) as TFolder[];
+			.filter((f): f is TFolder => f instanceof TFolder)
+			.filter(f => f.path !== '/' && f.children.length === 0)
+			.filter(f => passesFilters(f.path));
 	}
 
 	private findBigFiles(files: TFile[]) {

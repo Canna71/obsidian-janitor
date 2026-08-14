@@ -38,4 +38,16 @@ export default [
 			"@typescript-eslint/no-unsafe-return": "off",
 		},
 	},
+	{
+		// prefer-file-manager-trash-file defers the destination of a deletion
+		// to the user's "Deleted files" preference. Janitor asks the user
+		// directly instead — the review modal offers Obsidian trash, system
+		// trash and permanent delete as separate buttons — and FileProcessor
+		// carries out whichever they picked. The rule refuses inline disables,
+		// so the exception lives here.
+		files: ["src/FileProcessor.ts"],
+		rules: {
+			"obsidianmd/prefer-file-manager-trash-file": "off",
+		},
+	},
 ];
