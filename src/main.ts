@@ -41,37 +41,37 @@ export default class JanitorPlugin extends Plugin {
 			id: "scan-files",
 			name: "Scan files",
 			callback: () => {
-				this.scanFiles();
+				void this.scanFiles();
 			},
 		});
 		this.addCommand({
 			id: "scan-files-noprompt",
 			name: "Scan files (without prompt)",
 			callback: () => {
-				this.scanFiles(false, true);
+				void this.scanFiles(false, true);
 			},
 		});
 		this.addCommand({
 			id: "scan-files-with-prompt",
 			name: "Scan files (with prompt)",
 			callback: () => {
-				this.scanFiles(true, false);
+				void this.scanFiles(true, false);
 			},
 		});
 		this.addCommand({
 			id: "scan-vault-orphans",
 			name: "Scan vault (orphans)",
-			callback: () => { this.scanFilesFor("orphans"); },
+			callback: () => { void this.scanFilesFor("orphans"); },
 		});
 		this.addCommand({
 			id: "scan-vault-expired",
 			name: "Scan vault (expired)",
-			callback: () => { this.scanFilesFor("expired"); },
+			callback: () => { void this.scanFilesFor("expired"); },
 		});
 		this.addCommand({
 			id: "scan-vault-big",
 			name: "Scan vault (big files)",
-			callback: () => { this.scanFilesFor("big"); },
+			callback: () => { void this.scanFilesFor("big"); },
 		});
 
 		this.addCommand({
@@ -82,7 +82,7 @@ export default class JanitorPlugin extends Plugin {
 					this.app.workspace.getActiveViewOfType(MarkdownView);
 				if (markdownView) {
 					if (!checking) {
-						this.chooseDate(markdownView);
+						void this.chooseDate(markdownView);
 					}
 					return true;
 				}
@@ -123,7 +123,7 @@ export default class JanitorPlugin extends Plugin {
 	private async runStartupScan() {
 		await this.waitForSyncIfNeeded();
 		await this.waitForMetadataCache();
-		this.scanFiles();
+		await this.scanFiles();
 	}
 
 	/**
@@ -187,7 +187,7 @@ export default class JanitorPlugin extends Plugin {
 					this.app.workspace.getActiveViewOfType(MarkdownView);
 				if (markdownView) {
 					if (!checking) {
-						this.updateNoteWithDate(
+						void this.updateNoteWithDate(
 							markdownView,
 							moment()
 								.add(n, w)
@@ -282,7 +282,7 @@ export default class JanitorPlugin extends Plugin {
 				results.big,
 			].flatMap((list) => (list ? list.map((file) => file.path) : []));
 			files = [...new Set(files)];
-			this.perform(this.settings.defaultOperation, files);
+			await this.perform(this.settings.defaultOperation, files);
 		}
 	}
 
@@ -320,7 +320,7 @@ export default class JanitorPlugin extends Plugin {
 			"trash",
 			"Janitor: scan vault",
 			(evt: MouseEvent) => {
-				this.scanFiles();
+				void this.scanFiles();
 			}
 		);
 		this.ribbonIconEl.addClass("janitor-ribbon-class");

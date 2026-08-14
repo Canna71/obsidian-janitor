@@ -52,7 +52,7 @@ export class DatePickerModal extends Modal {
 	onApply(event: React.FormEvent) {
 		event.preventDefault();
 		const dateToSet = moment(this.date, "YYYY-MM-DD").format(this.plugin.settings.expiredDateFormat);
-		this.plugin.updateNoteWithDate(this.view, dateToSet);
+		void this.plugin.updateNoteWithDate(this.view, dateToSet);
 		this.close();
 		return false;
 	}

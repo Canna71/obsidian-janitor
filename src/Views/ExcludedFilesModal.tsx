@@ -12,10 +12,10 @@ import { SelectObs } from "./Select";
 export class ExcludedFilesModal extends Modal {
 	settings: JanitorSettings;
 	root: Root;
-	onFiltersChanged: (filters: string[]) => void;
+	onFiltersChanged: (filters: string[]) => Promise<void>;
 	
 
-	constructor(app: App, settings: JanitorSettings, onFiltersChanged: (filters:string[])=>void) {
+	constructor(app: App, settings: JanitorSettings, onFiltersChanged: (filters:string[])=>Promise<void>) {
 		super(app);
 		this.settings = settings;
 		this.titleEl.setText("Janitor excluded files");
@@ -39,7 +39,7 @@ export class ExcludedFilesModal extends Modal {
 					onCancel={()=>{this.close()}}
 					onFilterChanged={(filters:string[])=>{
 						this.close();
-						this.onFiltersChanged && this.onFiltersChanged(filters);
+						if (this.onFiltersChanged) void this.onFiltersChanged(filters);
 					}}
 				/>
 			</React.StrictMode>

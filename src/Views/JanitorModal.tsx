@@ -36,13 +36,13 @@ export class JanitorModal extends Modal {
 			},
 			// defaultOperation: this.plugin.settings.defaultOperation,
 			onOpen: (i: number, section: string) => {
-				this.handleOpen(i, section);
+				void this.handleOpen(i, section);
 			},
 			app: this.app,
 		};
 	}
 	perform(operation:OperationType) {
-		this.plugin.perform(operation, this.extractFiles());
+		void this.plugin.perform(operation, this.extractFiles());
 		this.close();
 	}
 
