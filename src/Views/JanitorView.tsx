@@ -21,7 +21,6 @@ export interface JanitorViewProps {
 	onSelectionChange: (i:number,section:string)=>void,
 	onOpen: (i:number,section:string)=>void,
 	onPerform(operation:string):void,
-	onSettingChange:(setting:string, value:any)=>void,
 }
 
 export const JanitorView = (props: JanitorViewProps) => {

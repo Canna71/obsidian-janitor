@@ -35,9 +35,6 @@ export class JanitorModal extends Modal {
 				this.perform(operation);
 			},
 			// defaultOperation: this.plugin.settings.defaultOperation,
-			onSettingChange: (setting: string, value: any) => {
-				this.onSettingChange(setting, value);
-			},
 			onOpen: (i: number, section: string) => {
 				this.handleOpen(i, section);
 			},
@@ -47,18 +44,6 @@ export class JanitorModal extends Modal {
 	perform(operation:OperationType) {
 		this.plugin.perform(operation, this.extractFiles());
 		this.close();
-	}
-
-	/**
-	 * @deprecated The method should not be used
-	 */
-	onSettingChange(setting: string, value: any) {
-		(this.plugin.settings as any)[setting] = value;
-		this.plugin.saveSettings();
-		this.state = {
-			...this.state
-		}
-		this.render();
 	}
 
 	async handleOpen(ic: number, section: string) {
