@@ -7,7 +7,6 @@ import {
 	moment,
 	Notice,
 	Plugin,
-	TFile,
 } from "obsidian";
 import { FileScanner } from "src/FileScanner";
 import { DEFAULT_SETTINGS, JanitorSettings } from "src/JanitorSettings";

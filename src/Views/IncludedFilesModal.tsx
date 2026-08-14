@@ -5,7 +5,7 @@ import { JanitorSettings } from "src/JanitorSettings";
 import { createRoot, Root } from "react-dom/client";
 import CloseIcon from "../svg/close.svg";
 import { useCallback, useRef, useState } from "react";
-import { Info, SettingControl, SettingItem, SettingsInfo } from "./SettingControls";
+import { SettingControl, SettingItem, SettingsInfo } from "./SettingControls";
 import { getFolders } from "src/Utils";
 import { SelectObs } from "./Select";
 

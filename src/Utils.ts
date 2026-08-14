@@ -1,4 +1,4 @@
-import { App, TFile } from "obsidian";
+import { App } from "obsidian";
 export function delay(ms: number) {
     return new Promise( resolve => window.setTimeout(resolve, ms) );
 }

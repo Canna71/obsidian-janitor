@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import Select, { ActionMeta, InputActionMeta } from 'react-select';
+import { ActionMeta, InputActionMeta } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 
 export type SelectObsProps = {
