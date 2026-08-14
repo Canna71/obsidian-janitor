@@ -206,7 +206,9 @@ export default class JanitorPlugin extends Plugin {
 	}
 
 	async updateNoteWithDate(view: MarkdownView, dateToSet: string) {
-		await this.app.fileManager.processFrontMatter(view.file, (fm) => {
+		const file = view.file;
+		if (!file) return;
+		await this.app.fileManager.processFrontMatter(file, (fm) => {
 			fm[this.settings.expiredAttribute] = dateToSet;
 		});
 	}
