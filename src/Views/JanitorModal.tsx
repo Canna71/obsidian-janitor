@@ -6,7 +6,6 @@ import { createRoot, Root } from "react-dom/client";
 import { ScanResults } from '../FileScanner';
 import JanitorPlugin from '../main';
 import { OperationType } from '../JanitorSettings';
-import path from 'path';
 
 
 function changeSelection(list: SelectableItem[], names:string[], value:boolean) {
@@ -66,11 +65,7 @@ export class JanitorModal extends Modal {
 		const files = ((this.state as any)[section]) as SelectableItem[];
 		const item = files[ic];
 		//@ts-ignore
-		const basePath = this.app.vault.adapter.getBasePath();
-		const fullPath = path.join(basePath, item.name);
-		//@ts-ignore
-		const res = await this.app.openWithDefaultApp(item.name);
-
+		await this.app.openWithDefaultApp(item.name);
 	}
 
 	handleSelectionChange(ic: number, section: string) {
