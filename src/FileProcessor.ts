@@ -14,23 +14,23 @@ export class FileProcessor {
 		let notDeletedFiles = 0;
 
 		for (const file of uniq) {
-			const tfile = app.vault.getAbstractFileByPath(file);
+			const tfile = this.app.vault.getAbstractFileByPath(file);
 			if (tfile) {
 				try {
 
 					switch (operation) {
 
 						case OperationType.TrashSystem:
-							await app.vault.trash(tfile, true);
+							await this.app.vault.trash(tfile, true);
 							deletedFiles++;
 							break;
 
 						case OperationType.Trash:
-							await app.vault.trash(tfile, false);
+							await this.app.vault.trash(tfile, false);
 							deletedFiles++;
 							break;
 						case OperationType.Delete:
-							await app.vault.delete(tfile);
+							await this.app.vault.delete(tfile);
 							deletedFiles++;
 							break;
 						default:

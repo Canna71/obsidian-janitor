@@ -187,7 +187,7 @@ export class FileScanner {
 
 								acc[res] = (acc[res] || 0) + 1;
 								//@ts-ignore
-								const attPath = normalizePath(`${app.vault.config.attachmentFolderPath}/${res}`)
+								const attPath = normalizePath(`${this.app.vault.config.attachmentFolderPath}/${res}`)
 								acc[attPath] = (acc[attPath] || 0) + 1;
 							}
 						}
@@ -230,13 +230,13 @@ export class FileScanner {
 
 	private getFrontMatters(notes: TFile[]) {
 		return notes.map(file => {
-			const frontMatter = app.metadataCache.getFileCache(file)?.frontmatter;
+			const frontMatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
 			if (frontMatter) {
 				const stringProps: string[] = extractStringProperties(frontMatter);
 				if (stringProps?.length) {
 					// we should distinguish files from other props maybe...
 					const resolvedProps: string[] = stringProps.map(sp => {
-						const resolvedFile = app.metadataCache.getFirstLinkpathDest(sp, file.path);
+						const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(sp, file.path);
 						if (resolvedFile)
 							return resolvedFile.path;
 					}).filter(sp => !!sp) as string[];
@@ -252,9 +252,9 @@ export class FileScanner {
 	}
 
 	private getResolvedLinks() {
-		const resolvedLinks: { [key: string]: number; } = Object.keys(app.metadataCache.resolvedLinks).
+		const resolvedLinks: { [key: string]: number; } = Object.keys(this.app.metadataCache.resolvedLinks).
 			reduce((rl: { [key: string]: number; }, fileName: string) => {
-				return Object.assign(rl, app.metadataCache.resolvedLinks[fileName]);
+				return Object.assign(rl, this.app.metadataCache.resolvedLinks[fileName]);
 
 			}, {});
 		return resolvedLinks;
