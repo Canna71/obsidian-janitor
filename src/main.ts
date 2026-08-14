@@ -4,17 +4,21 @@ import { JanitorModal } from "./Views/JanitorModal";
 
 import {
 	MarkdownView,
+	moment,
 	Notice,
 	Plugin,
-	TFile,
 } from "obsidian";
 import { FileScanner } from "src/FileScanner";
 import { DEFAULT_SETTINGS, JanitorSettings } from "src/JanitorSettings";
 import JanitorSettingsTab from "src/PluginSettingsTab";
 import { FileProcessor } from "src/FileProcessor";
-import moment from "moment";
 
 export default class JanitorPlugin extends Plugin {
+	/** How long the metadata cache must stay quiet before the startup scan runs. */
+	private static readonly CACHE_SETTLE_MS = 2000;
+	/** Upper bound on waiting for the cache, so the scan always eventually runs. */
+	private static readonly CACHE_TIMEOUT_MS = 120000;
+
 	settings: JanitorSettings;
 	statusBarItemEl: HTMLElement;
 	ribbonIconEl: HTMLElement;
@@ -35,39 +39,39 @@ export default class JanitorPlugin extends Plugin {
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
 			id: "scan-files",
-			name: "Scan Files",
+			name: "Scan files",
 			callback: () => {
-				this.scanFiles();
+				void this.scanFiles();
 			},
 		});
 		this.addCommand({
 			id: "scan-files-noprompt",
-			name: "Scan Files (without prompt)",
+			name: "Scan files (without prompt)",
 			callback: () => {
-				this.scanFiles(false, true);
+				void this.scanFiles(false, true);
 			},
 		});
 		this.addCommand({
 			id: "scan-files-with-prompt",
-			name: "Scan Files (with prompt)",
+			name: "Scan files (with prompt)",
 			callback: () => {
-				this.scanFiles(true, false);
+				void this.scanFiles(true, false);
 			},
 		});
 		this.addCommand({
 			id: "scan-vault-orphans",
-			name: "Scan Vault (Orphans)",
-			callback: () => { this.scanFilesFor("orphans"); },
+			name: "Scan vault (orphans)",
+			callback: () => { void this.scanFilesFor("orphans"); },
 		});
 		this.addCommand({
 			id: "scan-vault-expired",
-			name: "Scan Vault (Expired)",
-			callback: () => { this.scanFilesFor("expired"); },
+			name: "Scan vault (expired)",
+			callback: () => { void this.scanFilesFor("expired"); },
 		});
 		this.addCommand({
 			id: "scan-vault-big",
-			name: "Scan Vault (Big Files)",
-			callback: () => { this.scanFilesFor("big"); },
+			name: "Scan vault (big files)",
+			callback: () => { void this.scanFilesFor("big"); },
 		});
 
 		this.addCommand({
@@ -78,7 +82,7 @@ export default class JanitorPlugin extends Plugin {
 					this.app.workspace.getActiveViewOfType(MarkdownView);
 				if (markdownView) {
 					if (!checking) {
-						this.chooseDate(markdownView);
+						void this.chooseDate(markdownView);
 					}
 					return true;
 				}
@@ -107,18 +111,70 @@ export default class JanitorPlugin extends Plugin {
 
 		this.addSettingTab(new JanitorSettingsTab(this.app, this));
 
-		// this.app.workspace.onLayoutReady(()=>{
-		// 	if (this.settings.runAtStartup) {
-		// 		this.scanFiles();
-		// 	}
-		// })
-
-		this.app.metadataCache.on("resolved", async () => {
-			if (this.settings.runAtStartup && !this.initialScanDone) {
-				this.initialScanDone = true;
-				await this.waitForSyncIfNeeded();
-				this.scanFiles();
+		this.app.workspace.onLayoutReady(() => {
+			if (!this.settings.runAtStartup || this.initialScanDone) {
+				return;
 			}
+			this.initialScanDone = true;
+			void this.runStartupScan();
+		});
+	}
+
+	private async runStartupScan() {
+		await this.waitForSyncIfNeeded();
+		await this.waitForMetadataCache();
+		await this.scanFiles();
+	}
+
+	/**
+	 * `metadataCache.on("resolved")` fires every time the cache's work queue
+	 * drains, which happens repeatedly while a large vault is indexed at
+	 * startup. Scanning on the first one reads a half-built `resolvedLinks`,
+	 * so attachments belonging to not-yet-parsed notes are reported as orphans.
+	 *
+	 * Wait until every markdown file has an entry in `resolvedLinks` and the
+	 * cache has then stayed quiet for a moment before letting the scan run.
+	 */
+	private waitForMetadataCache(): Promise<void> {
+		return new Promise((resolve) => {
+			let settleTimer: number | undefined;
+			let timeoutTimer: number | undefined;
+			let settled = false;
+
+			const finish = () => {
+				if (settled) return;
+				settled = true;
+				window.clearTimeout(settleTimer);
+				window.clearTimeout(timeoutTimer);
+				this.app.metadataCache.offref(ref);
+				resolve();
+			};
+
+			// Obsidian keys `resolvedLinks` by every markdown file it has
+			// parsed, so a short count is proof the index is still filling in.
+			const indexIsComplete = () =>
+				Object.keys(this.app.metadataCache.resolvedLinks).length >=
+				this.app.vault.getMarkdownFiles().length;
+
+			const check = () => {
+				window.clearTimeout(settleTimer);
+				if (!indexIsComplete()) return;
+				settleTimer = window.setTimeout(
+					finish,
+					JanitorPlugin.CACHE_SETTLE_MS
+				);
+			};
+
+			const ref = this.app.metadataCache.on("resolved", check);
+			this.registerEvent(ref);
+
+			// Sync or another plugin can keep the cache busy indefinitely.
+			// Scan anyway rather than never running the startup scan at all.
+			timeoutTimer = window.setTimeout(
+				finish,
+				JanitorPlugin.CACHE_TIMEOUT_MS
+			);
+			check();
 		});
 	}
 
@@ -131,7 +187,7 @@ export default class JanitorPlugin extends Plugin {
 					this.app.workspace.getActiveViewOfType(MarkdownView);
 				if (markdownView) {
 					if (!checking) {
-						this.updateNoteWithDate(
+						void this.updateNoteWithDate(
 							markdownView,
 							moment()
 								.add(n, w)
@@ -150,7 +206,9 @@ export default class JanitorPlugin extends Plugin {
 	}
 
 	async updateNoteWithDate(view: MarkdownView, dateToSet: string) {
-		await this.app.fileManager.processFrontMatter(view.file, (fm) => {
+		const file = view.file;
+		if (!file) return;
+		await this.app.fileManager.processFrontMatter(file, (fm) => {
 			fm[this.settings.expiredAttribute] = dateToSet;
 		});
 	}
@@ -226,7 +284,7 @@ export default class JanitorPlugin extends Plugin {
 				results.big,
 			].flatMap((list) => (list ? list.map((file) => file.path) : []));
 			files = [...new Set(files)];
-			this.perform(this.settings.defaultOperation, files);
+			await this.perform(this.settings.defaultOperation, files);
 		}
 	}
 
@@ -264,7 +322,7 @@ export default class JanitorPlugin extends Plugin {
 			"trash",
 			"Janitor: scan vault",
 			(evt: MouseEvent) => {
-				this.scanFiles();
+				void this.scanFiles();
 			}
 		);
 		this.ribbonIconEl.addClass("janitor-ribbon-class");

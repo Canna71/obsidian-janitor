@@ -6,7 +6,6 @@ import { createRoot, Root } from "react-dom/client";
 import { ScanResults } from '../FileScanner';
 import JanitorPlugin from '../main';
 import { OperationType } from '../JanitorSettings';
-import path from 'path';
 
 
 function changeSelection(list: SelectableItem[], names:string[], value:boolean) {
@@ -36,41 +35,22 @@ export class JanitorModal extends Modal {
 				this.perform(operation);
 			},
 			// defaultOperation: this.plugin.settings.defaultOperation,
-			onSettingChange: (setting: string, value: any) => {
-				this.onSettingChange(setting, value);
-			},
 			onOpen: (i: number, section: string) => {
-				this.handleOpen(i, section);
+				void this.handleOpen(i, section);
 			},
 			app: this.app,
 		};
 	}
 	perform(operation:OperationType) {
-		this.plugin.perform(operation, this.extractFiles());
+		void this.plugin.perform(operation, this.extractFiles());
 		this.close();
-	}
-
-	/**
-	 * @deprecated The method should not be used
-	 */
-	onSettingChange(setting: string, value: any) {
-		(this.plugin.settings as any)[setting] = value;
-		this.plugin.saveSettings();
-		this.state = {
-			...this.state
-		}
-		this.render();
 	}
 
 	async handleOpen(ic: number, section: string) {
 		const files = ((this.state as any)[section]) as SelectableItem[];
 		const item = files[ic];
 		//@ts-ignore
-		const basePath = this.app.vault.adapter.getBasePath();
-		const fullPath = path.join(basePath, item.name);
-		//@ts-ignore
-		const res = await this.app.openWithDefaultApp(item.name);
-
+		await this.app.openWithDefaultApp(item.name);
 	}
 
 	handleSelectionChange(ic: number, section: string) {

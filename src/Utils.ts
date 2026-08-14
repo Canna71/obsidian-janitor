@@ -1,6 +1,6 @@
-import { App, TFile } from "obsidian";
+import { App } from "obsidian";
 export function delay(ms: number) {
-    return new Promise( resolve => setTimeout(resolve, ms) );
+    return new Promise( resolve => window.setTimeout(resolve, ms) );
 }
 
 export function partition<T>(array: T[], isValid: (el: T) => boolean) :T[][] {

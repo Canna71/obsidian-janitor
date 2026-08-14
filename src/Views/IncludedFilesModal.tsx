@@ -5,19 +5,19 @@ import { JanitorSettings } from "src/JanitorSettings";
 import { createRoot, Root } from "react-dom/client";
 import CloseIcon from "../svg/close.svg";
 import { useCallback, useRef, useState } from "react";
-import { Info, SettingControl, SettingItem, SettingsInfo } from "./SettingControls";
+import { SettingControl, SettingItem, SettingsInfo } from "./SettingControls";
 import { getFolders } from "src/Utils";
 import { SelectObs } from "./Select";
 
 export class IncludedFilesModal extends Modal {
 	settings: JanitorSettings;
 	root: Root;
-	onFiltersChanged: (filters: string[]) => void;
+	onFiltersChanged: (filters: string[]) => Promise<void>;
 
-	constructor(app: App, settings: JanitorSettings, onFiltersChanged: (filters: string[]) => void) {
+	constructor(app: App, settings: JanitorSettings, onFiltersChanged: (filters: string[]) => Promise<void>) {
 		super(app);
 		this.settings = settings;
-		this.titleEl.setText("Janitor Included Files");
+		this.titleEl.setText("Janitor included files");
 		this.onFiltersChanged = onFiltersChanged;
 	}
 
@@ -35,7 +35,7 @@ export class IncludedFilesModal extends Modal {
 					onCancel={() => { this.close() }}
 					onFilterChanged={(filters: string[]) => {
 						this.close();
-						this.onFiltersChanged && this.onFiltersChanged(filters);
+						if (this.onFiltersChanged) void this.onFiltersChanged(filters);
 					}}
 				/>
 			</React.StrictMode>

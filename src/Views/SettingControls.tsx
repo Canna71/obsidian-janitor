@@ -1,4 +1,4 @@
-import React, { ReactChild, ReactChildren } from "react";
+import React from "react";
 
 type SettingsInfoProps = {
     name: string;

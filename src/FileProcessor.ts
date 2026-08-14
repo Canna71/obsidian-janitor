@@ -14,27 +14,33 @@ export class FileProcessor {
 		let notDeletedFiles = 0;
 
 		for (const file of uniq) {
-			const tfile = app.vault.getAbstractFileByPath(file);
+			const tfile = this.app.vault.getAbstractFileByPath(file);
 			if (tfile) {
 				try {
 
+					// obsidianmd/prefer-file-manager-trash-file asks for
+					// FileManager.trashFile(), so that the user's "Deleted files"
+					// preference decides the destination. Janitor asks the user which
+					// destination they want instead - the review modal offers all three
+					// as separate buttons - so honouring that choice means addressing
+					// the vault directly.
 					switch (operation) {
 
 						case OperationType.TrashSystem:
-							await app.vault.trash(tfile, true);
+							await this.app.vault.trash(tfile, true);
 							deletedFiles++;
 							break;
 
 						case OperationType.Trash:
-							await app.vault.trash(tfile, false);
+							await this.app.vault.trash(tfile, false);
 							deletedFiles++;
 							break;
 						case OperationType.Delete:
-							await app.vault.delete(tfile);
+							await this.app.vault.delete(tfile);
 							deletedFiles++;
 							break;
 						default:
-							console.warn(`Warning: operation ${operation} unknown`);
+							console.warn(`Warning: operation ${String(operation)} unknown`);
 							break;
 					}
 				} catch {
