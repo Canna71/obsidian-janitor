@@ -20,7 +20,7 @@ export interface JanitorViewProps {
 	onClose: ()=>void,
 	onSelectionChange: (i:number,section:string)=>void,
 	onOpen: (i:number,section:string)=>void,
-	onPerform(operation:string):void,
+	onPerform: (operation:string)=>void,
 }
 
 export const JanitorView = (props: JanitorViewProps) => {

@@ -29,12 +29,12 @@ export class FileScanner {
 		this.settings = settings;
 	}
 
-	isNote(file: TFile): boolean {
+	isNote(this: void, file: TFile): boolean {
 		return file.extension.toLowerCase() === "md" || 
 		file.extension.toLowerCase() === "canvas" ;
 	}
 
-	isCanvas(file: TFile): boolean {
+	isCanvas(this: void, file: TFile): boolean {
 		return file.extension.toLowerCase() === "canvas" ;
 	}
 	async scan() {

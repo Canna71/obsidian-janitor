@@ -40,7 +40,7 @@ export class FileProcessor {
 							deletedFiles++;
 							break;
 						default:
-							console.warn(`Warning: operation ${operation} unknown`);
+							console.warn(`Warning: operation ${String(operation)} unknown`);
 							break;
 					}
 				} catch {
