@@ -1,6 +1,6 @@
 
 import { JanitorView, JanitorViewProps, SelectableItem } from './JanitorView';
-import { App, Modal, TFile, TFolder } from "obsidian";
+import { App, Modal, Notice, TFile, TFolder } from "obsidian";
 import * as React from "react";
 import { createRoot, Root } from "react-dom/client";
 import { ScanResults } from '../FileScanner';
@@ -8,9 +8,11 @@ import JanitorPlugin from '../main';
 import { OperationType } from '../JanitorSettings';
 
 
-function changeSelection(list: SelectableItem[], names:string[], value:boolean) {
-	return list.map((o, i) => names.contains( o.name) ? ({ ...o, selected: value }) : o)
+function changeSelection(list: SelectableItem[], names: Set<string>, value: boolean) {
+	return list.map(o => names.has(o.name) && o.selected !== value ? ({ ...o, selected: value }) : o)
 }
+
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 export class JanitorModal extends Modal {
 
 	plugin: JanitorPlugin;
@@ -28,15 +30,19 @@ export class JanitorModal extends Modal {
 			emptyFolders: [],
 			big: [],
 			expired: [],
-			onSelectionChange: (i: number, section: string) => {
-				this.handleSelectionChange(i, section);
+			onSelect: (paths: string[], value: boolean) => {
+				this.applySelectionChangeToAllSections(paths, value);
+				this.render();
+			},
+			onIgnore: (path: string, isFolder: boolean) => {
+				void this.ignore(path, isFolder);
 			},
 			onPerform: (operation:OperationType) => {
 				this.perform(operation);
 			},
 			// defaultOperation: this.plugin.settings.defaultOperation,
-			onOpen: (i: number, section: string) => {
-				void this.handleOpen(i, section);
+			onOpen: (path: string) => {
+				void this.handleOpen(path);
 			},
 			app: this.app,
 		};
@@ -46,30 +52,36 @@ export class JanitorModal extends Modal {
 		this.close();
 	}
 
-	async handleOpen(ic: number, section: string) {
-		const files = ((this.state as any)[section]) as SelectableItem[];
-		const item = files[ic];
+	async handleOpen(path: string) {
 		//@ts-ignore
-		await this.app.openWithDefaultApp(item.name);
+		await this.app.openWithDefaultApp(path);
 	}
 
-	handleSelectionChange(ic: number, section: string) {
-		const files = ((this.state as any)[section]) as SelectableItem[];
-		if (ic >= 0) {
-			// single item toggle
-			const item = files[ic];
-			const newValue = !item.selected;
-			this.applySelectionChangeToAllSections([item.name], newValue);    
-		} else {
-			const allSelected = files.every(file => file.selected);
-			const names = files.map(file=>file.name);
-			this.applySelectionChangeToAllSections(names,!allSelected);
-		}
-
+	/**
+	 * Adds an anchored pattern for `path` to the excluded files and drops the
+	 * matching items from the results, as the next scan would.
+	 */
+	async ignore(path: string, isFolder: boolean) {
+		const filter = isFolder ? `^${escapeRegExp(path)}/` : `^${escapeRegExp(path)}$`;
+		const settings = this.plugin.settings;
+		settings.excludedFilesFilters = [...(settings.excludedFilesFilters || []), filter];
+		await this.plugin.saveSettings();
+		const keep = (list: SelectableItem[] | false) => list &&
+			list.filter(o => isFolder ? !o.name.startsWith(`${path}/`) && o.name !== path : o.name !== path);
+		this.state = {
+			...this.state,
+			orphans: keep(this.state.orphans),
+			empty: keep(this.state.empty),
+			emptyFolders: keep(this.state.emptyFolders),
+			big: keep(this.state.big),
+			expired: keep(this.state.expired),
+		};
+		new Notice(`Janitor will ignore ${path}${isFolder ? "/" : ""}`);
 		this.render();
 	}
 
-	applySelectionChangeToAllSections(names:string[], value:boolean){
+	applySelectionChangeToAllSections(paths:string[], value:boolean){
+		const names = new Set(paths);
 		this.state = {
 			...this.state,
 			orphans: this.state.orphans && changeSelection(this.state.orphans, names, value),
@@ -100,6 +112,7 @@ export class JanitorModal extends Modal {
 		return files && files.map(tfile => ({
 			name: tfile.path,
 			selected: false,
+			size: tfile.stat.size,
 			resourcePath: JanitorModal.IMAGE_EXTENSIONS.contains(tfile.extension.toLowerCase())
 				? this.app.vault.getResourcePath(tfile)
 				: undefined

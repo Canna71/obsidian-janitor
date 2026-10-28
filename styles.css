@@ -172,3 +172,67 @@ If your plugin does not need CSS, delete this file.
 .janitor-date-shortcuts .janitor-date-picker-buttons {
 	display: inline-block;
 }
+
+.janitor-show-more {
+	margin: 5pt 0 5pt 1em;
+}
+
+.janitor-tree-filter {
+	width: 100%;
+	margin-bottom: 5pt;
+}
+
+.janitor-tree-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding-right: 4px;
+	min-height: 1.8em;
+}
+
+.janitor-tree-row:hover {
+	background-color: var(--background-primary);
+}
+
+.janitor-tree-row label {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	min-width: 0;
+}
+
+.janitor-tree-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.janitor-tree-folder .janitor-tree-name {
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.janitor-tree-caret {
+	display: inline-block;
+	width: 1.2em;
+	color: var(--text-muted);
+}
+
+.janitor-tree-meta {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+.janitor-tree-actions {
+	display: flex;
+	gap: 4px;
+	visibility: hidden;
+}
+
+.janitor-tree-row:hover .janitor-tree-actions {
+	visibility: visible;
+}
