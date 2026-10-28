@@ -129,8 +129,26 @@ If your plugin does not need CSS, delete this file.
 	outline: auto;
 }
 
+/* Fixed size: the results scroll inside, so the modal does not jump as
+   folders expand or items are ignored. */
 .janitor-main-modal {
 	width: min(700px, 90vw);
+	height: min(700px, 85vh);
+}
+
+.janitor-main-modal .modal-content,
+.janitor-modal-wrapper {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.janitor-modal-content {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
 }
 
 /* Ensure hover preview popover appears above the modal overlay */
@@ -139,8 +157,9 @@ If your plugin does not need CSS, delete this file.
 }
 
 .janitor-scan-results {
+	flex: 1;
+	min-height: 0;
 	overflow-y: auto;
-	max-height: 450px;
 }
 
 .janitor-files-wrapper {
