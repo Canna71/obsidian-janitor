@@ -30,7 +30,6 @@
 	"dependencies": {
 		"esbuild-plugin-svgr": "^1.0.1",
 		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
-		"react-select": "^5.4.0"
+		"react-dom": "^18.2.0"
 	}
 }

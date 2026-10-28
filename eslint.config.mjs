@@ -59,7 +59,7 @@ export default [
 	},
 	{
 		// The declarative settings API landed in Obsidian 1.13.0 and this
-		// plugin supports 1.4.4, so the settings tab stays on display(). Revisit
+		// plugin supports 1.4.10, so the settings tab stays on display(). Revisit
 		// along with minAppVersion.
 		files: ["src/PluginSettingsTab.ts"],
 		rules: {

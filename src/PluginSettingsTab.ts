@@ -1,5 +1,4 @@
-import { ExcludedFilesModal } from './Views/ExcludedFilesModal';
-import { IncludedFilesModal } from './Views/IncludedFilesModal';
+import { FiltersModal } from './Views/FiltersModal';
 import { DEFAULT_SETTINGS } from "src/JanitorSettings";
 import JanitorPlugin from "./main";
 import { App, PluginSettingTab, Setting } from "obsidian";
@@ -185,7 +184,9 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 		.addButton(cb => {
 			cb.setButtonText("Manage");
 			cb.onClick((evt:MouseEvent)=>{
-				new ExcludedFilesModal(this.app, this.plugin.settings,
+				new FiltersModal(this.app, "Janitor excluded files",
+					"Files matching the following regular expressions are currently ignored:",
+					this.plugin.settings.excludedFilesFilters,
 					async (filters:string[])=>{
 						this.plugin.settings.excludedFilesFilters = filters;
 						await this.plugin.saveSettings();
@@ -208,7 +209,9 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 			.addButton(cb => {
 				cb.setButtonText("Manage");
 				cb.onClick((evt: MouseEvent) => {
-					new IncludedFilesModal(this.app, this.plugin.settings,
+					new FiltersModal(this.app, "Janitor included files",
+						"Files matching the following regular expressions are always included, even if excluded by other rules:",
+						this.plugin.settings.includedFilesFilters,
 						async (filters: string[]) => {
 							this.plugin.settings.includedFilesFilters = filters;
 							await this.plugin.saveSettings();

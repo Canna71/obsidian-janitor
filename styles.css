@@ -255,3 +255,44 @@ If your plugin does not need CSS, delete this file.
 .janitor-tree-row:hover .janitor-tree-actions {
 	visibility: visible;
 }
+
+.janitor-filter-list {
+	margin: 8px 0 16px;
+	max-height: 40vh;
+	overflow-y: auto;
+}
+
+.janitor-filter-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 2px 0;
+}
+
+.janitor-filter-text {
+	flex: 1;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.janitor-filter-remove svg {
+	width: 14px;
+	height: 14px;
+}
+
+.janitor-filter-add {
+	border-top: 1px solid var(--background-modifier-border);
+	padding-top: 12px;
+}
+
+.janitor-filter-add-row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin-top: 8px;
+}
+
+.janitor-filter-add-row > input {
+	flex: 1;
+	min-width: 0;
+}
