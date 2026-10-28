@@ -19,10 +19,9 @@
 			"ES5",
 			"ES6",
 			"ES7"
-		],
-		"jsx": "react"
+		]
 	},
 	"include": [
-		"./src/**/*.ts", "./src/**/*.tsx"
+		"./src/**/*.ts"
 	]
 } 

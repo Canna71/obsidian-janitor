@@ -10,12 +10,11 @@ export default [
 	...tseslint.configs.recommended,
 	...obsidianmd.configs.recommended,
 	{
-		files: ["**/*.ts", "**/*.tsx"],
+		files: ["**/*.ts"],
 		languageOptions: {
 			parser: tseslint.parser,
 			parserOptions: {
 				project: "./tsconfig.json",
-				ecmaFeatures: { jsx: true },
 			},
 		},
 		rules: {
@@ -28,7 +27,7 @@ export default [
 
 			// The recommended config enables typescript-eslint's strict
 			// type-checked rules. The no-unsafe-* family fires on third-party
-			// callbacks with untyped signatures (react-select styles) and on
+			// callbacks with untyped signatures (Obsidian event payloads) and on
 			// Obsidian internal APIs that are absent from the public typings,
 			// neither of which can be typed without lying about the shape.
 			"@typescript-eslint/no-unsafe-argument": "off",

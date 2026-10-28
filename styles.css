@@ -1,159 +1,15 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
-.janitor-modal-footer {
-	/* float: right; */
-	padding: 10pt;
-	display: flex;
-}
-
-.janitor-modal-footer button {
-	margin-left: 4px;
-}
-
-.janitor-modal-footer .janitor-footer-buttons {
-	flex: 1;
-	justify-content: flex-end;
-	display: flex;
-}
-
-.janitor-scan-section-title {
-	font-size: larger;
-	margin-bottom: 5pt;
-	font-weight: 600;
-}
-
-.janitor-modal-title {
-    text-align: center;
-    font-size: 150%;
-    margin-bottom: 10px;
-}
-
-.janitor-file {
-	margin-left: 1em;
-	position: relative;
-}
-
-.janitor-file:hover {
-	background-color: var(--background-primary);
-}
-
-
-.janitor-file .openFileIcon {
-    right: 0px;
-	position: absolute;
-	visibility: hidden;
-}
-
-.janitor-file label {
-	width: 100%;
-	display: flex;
-	align-items: center;
-}
-
-.janitor-file-name {
-	flex: 1;
-	min-width: 0;
-	overflow: hidden;
-	margin-right: 3.5em;
-}
-
-.janitor-icon {
-	display: flex;
-	align-items: center;
-	line-height: 1;
-}
-
-.janitor-icon svg {
-	width: 14px;
-	height: 14px;
-}
-
-.janitor-file-name-text {
-	display: inline-block;
-	white-space: nowrap;
-}
-
-.janitor-file:hover .janitor-file-name-text {
-	animation: janitor-marquee 4s ease-in-out infinite alternate;
-}
-
-@keyframes janitor-marquee {
-	0%, 15%  { transform: translateX(0); }
-	85%, 100% { transform: translateX(var(--marquee-offset, 0px)); }
-}
-
-.janitor-md-preview-link {
-	display: contents;
-}
-
-.previewFileIcon {
-	right: 1.5em;
-	position: absolute;
-	visibility: hidden;
-}
-
-.janitor-file:hover .previewFileIcon {
-	visibility: visible;
-}
-
-.janitor-preview-overlay {
-	position: fixed;
-	z-index: 9999;
-	padding: 6px;
-	background: var(--background-primary);
-	border: 1px solid var(--background-modifier-border);
-	border-radius: 6px;
-	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-	pointer-events: none;
-}
-
-.janitor-preview-overlay img {
-	display: block;
-	max-width: 200px;
-	max-height: 200px;
-	object-fit: contain;
-	border-radius: 3px;
-}
-
-.janitor-file:hover .openFileIcon {
-	visibility: visible;
-}
-
-.janitor-file:focus {
-	outline: auto;
-}
-
-/* Fixed size: the results scroll inside, so the modal does not jump as
-   folders expand or items are ignored. */
+/* Scan results modal. Fixed size: the results scroll inside, so the modal
+   does not jump as folders expand or items are ignored. */
 .janitor-main-modal {
 	width: min(700px, 90vw);
 	height: min(700px, 85vh);
 }
 
-.janitor-main-modal .modal-content,
-.janitor-modal-wrapper {
+.janitor-main-modal .modal-content {
 	flex: 1;
 	min-height: 0;
 	display: flex;
 	flex-direction: column;
-}
-
-.janitor-modal-content {
-	flex: 1;
-	min-height: 0;
-	display: flex;
-	flex-direction: column;
-}
-
-/* Ensure hover preview popover appears above the modal overlay */
-.popover.hover-popover {
-	z-index: calc(var(--layer-modal, 200) + 10);
 }
 
 .janitor-scan-results {
@@ -162,38 +18,22 @@ If your plugin does not need CSS, delete this file.
 	overflow-y: auto;
 }
 
+/* Ensure hover preview popover appears above the modal overlay */
+.popover.hover-popover {
+	z-index: calc(var(--layer-modal, 200) + 10);
+}
+
 .janitor-files-wrapper {
-	/* overflow-y: auto; */
-	/* max-height: 180px; */
-	/* border: 1px solid; */
 	padding: 5px;
 }
 
-.janitor-date-picker {
-	padding: 5px;;
-}
-
-.janitor-date-picker label span {
-	margin-right: 1em;;
-}
-
-
-.janitor-date-picker-buttons {
-	float: right;
-}
-
-.janitor-date-shortcuts {
-	white-space: nowrap;
-	margin-top: 1em;
-	text-align: center;
-}
-
-.janitor-date-shortcuts .janitor-date-picker-buttons {
-	display: inline-block;
-}
-
-.janitor-show-more {
-	margin: 5pt 0 5pt 1em;
+.janitor-scan-section-title {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: larger;
+	font-weight: 600;
+	margin-bottom: 5pt;
 }
 
 .janitor-tree-filter {
@@ -205,12 +45,17 @@ If your plugin does not need CSS, delete this file.
 	display: flex;
 	align-items: center;
 	gap: 6px;
+	padding-left: calc(var(--janitor-depth, 0) * 1.2em);
 	padding-right: 4px;
 	min-height: 1.8em;
 }
 
+.janitor-tree-file {
+	padding-left: calc(var(--janitor-depth, 0) * 1.2em + 1.4em);
+}
+
 .janitor-tree-row:hover {
-	background-color: var(--background-primary);
+	background-color: var(--background-modifier-hover);
 }
 
 .janitor-tree-row label {
@@ -234,9 +79,15 @@ If your plugin does not need CSS, delete this file.
 }
 
 .janitor-tree-caret {
-	display: inline-block;
+	display: inline-flex;
+	vertical-align: middle;
 	width: 1.2em;
 	color: var(--text-muted);
+}
+
+.janitor-tree-caret svg {
+	width: 14px;
+	height: 14px;
 }
 
 .janitor-tree-meta {
@@ -246,9 +97,13 @@ If your plugin does not need CSS, delete this file.
 	font-variant-numeric: tabular-nums;
 }
 
+/* Fixed width so sizes line up whatever the number of icons. */
 .janitor-tree-actions {
 	display: flex;
-	gap: 4px;
+	justify-content: flex-end;
+	gap: 2px;
+	width: 84px;
+	flex-shrink: 0;
 	visibility: hidden;
 }
 
@@ -256,43 +111,57 @@ If your plugin does not need CSS, delete this file.
 	visibility: visible;
 }
 
+.janitor-show-more {
+	margin: 5pt 0;
+}
+
+.janitor-preview-overlay {
+	position: fixed;
+	left: var(--janitor-preview-left);
+	top: var(--janitor-preview-top);
+	z-index: calc(var(--layer-modal, 200) + 10);
+	padding: 6px;
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	box-shadow: var(--shadow-l);
+	pointer-events: none;
+}
+
+.janitor-preview-overlay img {
+	display: block;
+	max-width: 200px;
+	max-height: 200px;
+	object-fit: contain;
+	border-radius: 3px;
+}
+
+/* Excluded / included files modal */
 .janitor-filter-list {
 	margin: 8px 0 16px;
 	max-height: 40vh;
 	overflow-y: auto;
 }
 
-.janitor-filter-row {
-	display: flex;
-	align-items: center;
-	gap: 8px;
+.modal .janitor-filter-list .janitor-filter-row.setting-item {
 	padding: 2px 0;
+	border-top: none;
 }
 
-.janitor-filter-text {
-	flex: 1;
-	min-width: 0;
+.janitor-filter-row code {
 	overflow-wrap: anywhere;
 }
 
-.janitor-filter-remove svg {
-	width: 14px;
-	height: 14px;
-}
-
 .janitor-filter-add {
-	border-top: 1px solid var(--background-modifier-border);
-	padding-top: 12px;
-}
-
-.janitor-filter-add-row {
-	display: flex;
+	flex-wrap: wrap;
 	gap: 8px;
-	align-items: center;
-	margin-top: 8px;
 }
 
-.janitor-filter-add-row > input {
+.janitor-filter-add .setting-item-control {
+	flex: 1 1 100%;
+}
+
+.janitor-filter-add .setting-item-control input {
 	flex: 1;
 	min-width: 0;
 }
