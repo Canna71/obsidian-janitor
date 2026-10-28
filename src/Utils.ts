@@ -4,9 +4,12 @@ export function delay(ms: number) {
 }
 
 export function partition<T>(array: T[], isValid: (el: T) => boolean) :T[][] {
-	return array.reduce(([pass, fail]: any, elem: any) => {
-		return isValid(elem) ? [[...pass, elem], fail] : [pass, [...fail, elem]];
-	}, [[], []]);
+	const pass: T[] = [];
+	const fail: T[] = [];
+	for (const elem of array) {
+		(isValid(elem) ? pass : fail).push(elem);
+	}
+	return [pass, fail];
 }
 
 export async function asyncFilter<T>(arr:T[], predicate:(e:T)=>Promise<boolean>) {

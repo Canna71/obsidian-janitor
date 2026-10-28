@@ -109,8 +109,12 @@ export class FileScanner {
 	}
 
 	private async findEmpty(files: TFile[]) {
+		// Only notes can be "whitespace only" in a meaningful way. Reading
+		// every attachment as text costs seconds and hundreds of MB on a
+		// large vault, so other files count as empty only when size is 0.
 		const empty = await asyncFilter(files, async file => {
 			if (file.stat.size === 0) return true;
+			if (!this.isNote(file)) return false;
 			const content = await this.app.vault.cachedRead(file);
 			if (!this.whiteSpaceRegExp.test(content)) return true;
 			if (this.settings.emptyIgnoresFrontmatter) {
@@ -214,19 +218,13 @@ export class FileScanner {
 	}
 
 	private combineLinksAndResolvedMetadata(frontMatters: ({ frontMatter: FrontMatterCache; stringProps: string[]; resolvedProps: string[]; file: TFile; } | undefined)[], resolvedLinks: { [key: string]: number; }) {
-		return frontMatters.reduce(
-			(rl, fm) => {
-				if (fm?.resolvedProps?.length) {
-					return ({
-						...rl,
-						...fm.resolvedProps.reduce((ob, val) => ({ ...ob, [val]: 1 }), {})
-					});
-				} else {
-					return rl;
-				}
-			},
-			resolvedLinks
-		);
+		const combined = { ...resolvedLinks };
+		for (const fm of frontMatters) {
+			for (const val of fm?.resolvedProps ?? []) {
+				combined[val] = 1;
+			}
+		}
+		return combined;
 	}
 
 	private getFrontMatters(notes: TFile[]) {
