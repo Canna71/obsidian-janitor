@@ -12,6 +12,7 @@ import { FileScanner } from "src/FileScanner";
 import { DEFAULT_SETTINGS, JanitorSettings } from "src/JanitorSettings";
 import JanitorSettingsTab from "src/PluginSettingsTab";
 import { FileProcessor } from "src/FileProcessor";
+import { dlog, setDebugLogging, timedAsync } from "src/DebugLog";
 
 export default class JanitorPlugin extends Plugin {
 	/** How long the metadata cache must stay quiet before the startup scan runs. */
@@ -27,6 +28,8 @@ export default class JanitorPlugin extends Plugin {
 	async onload() {
 		this.initialScanDone = false;
 		await this.loadSettings();
+		this.applyDebugLogging();
+		dlog("onload, settings", this.settings);
 
 		if (this.settings.addRibbonIcon) {
 			this.addIcon();
@@ -112,18 +115,25 @@ export default class JanitorPlugin extends Plugin {
 		this.addSettingTab(new JanitorSettingsTab(this.app, this));
 
 		this.app.workspace.onLayoutReady(() => {
+			dlog("layout ready", { runAtStartup: this.settings.runAtStartup, initialScanDone: this.initialScanDone });
 			if (!this.settings.runAtStartup || this.initialScanDone) {
 				return;
 			}
 			this.initialScanDone = true;
 			void this.runStartupScan();
 		});
+		dlog("onload end");
 	}
 
 	private async runStartupScan() {
-		await this.waitForSyncIfNeeded();
-		await this.waitForMetadataCache();
-		await this.scanFiles();
+		try {
+			await timedAsync("waitForSyncIfNeeded", () => this.waitForSyncIfNeeded());
+			await timedAsync("waitForMetadataCache", () => this.waitForMetadataCache());
+			await timedAsync("scanFiles (startup)", () => this.scanFiles());
+		} catch (e) {
+			dlog("startup scan failed", String(e), (e as Error)?.stack ?? "");
+			throw e;
+		}
 	}
 
 	/**
@@ -141,8 +151,9 @@ export default class JanitorPlugin extends Plugin {
 			let timeoutTimer: number | undefined;
 			let settled = false;
 
-			const finish = () => {
+			const finish = (reason: string) => {
 				if (settled) return;
+				dlog(`metadata wait finished: ${reason}`);
 				settled = true;
 				window.clearTimeout(settleTimer);
 				window.clearTimeout(timeoutTimer);
@@ -158,9 +169,13 @@ export default class JanitorPlugin extends Plugin {
 
 			const check = () => {
 				window.clearTimeout(settleTimer);
+				dlog("metadata check", {
+					resolvedLinks: Object.keys(this.app.metadataCache.resolvedLinks).length,
+					markdownFiles: this.app.vault.getMarkdownFiles().length,
+				});
 				if (!indexIsComplete()) return;
 				settleTimer = window.setTimeout(
-					finish,
+					() => finish("settled"),
 					JanitorPlugin.CACHE_SETTLE_MS
 				);
 			};
@@ -171,7 +186,7 @@ export default class JanitorPlugin extends Plugin {
 			// Sync or another plugin can keep the cache busy indefinitely.
 			// Scan anyway rather than never running the startup scan at all.
 			timeoutTimer = window.setTimeout(
-				finish,
+				() => finish("timeout"),
 				JanitorPlugin.CACHE_TIMEOUT_MS
 			);
 			check();
@@ -246,6 +261,13 @@ export default class JanitorPlugin extends Plugin {
 		this.updateStatusBar("Janitor Scanning...");
 		let modal;
 		const results = await new FileScanner(this.app, this.settings).scan();
+		dlog("scan results", {
+			orphans: results.orphans ? results.orphans.length : null,
+			empty: results.empty ? results.empty.length : null,
+			emptyFolders: results.emptyFolders ? results.emptyFolders.length : null,
+			expired: results.expired ? results.expired.length : null,
+			big: results.big ? results.big.length : null,
+		});
 		// artificially introduce waiting for testing purposes
 		// await delay(1000);
 		const foundSomething =
@@ -270,6 +292,7 @@ export default class JanitorPlugin extends Plugin {
 			modal = new JanitorModal(this.app, this);
 			modal.open();
 		}
+		dlog(modal ? "opening review modal" : "processing without prompt");
 		if (modal) {
 			// if we have to prompt the user let's him/her decide which files
 			// and which action to perform
@@ -301,11 +324,13 @@ export default class JanitorPlugin extends Plugin {
 
 	private waitForSyncIfNeeded(): Promise<void> {
 		const syncPlugin = (this.app as any).internalPlugins?.plugins?.['sync']?.instance;
+		dlog("sync plugin", { present: !!syncPlugin, syncing: syncPlugin?.syncing });
 		if (!syncPlugin || !syncPlugin.syncing) {
 			return Promise.resolve();
 		}
 		return new Promise(resolve => {
 			const handler = syncPlugin.on('status-change', () => {
+				dlog("sync status-change", { syncing: syncPlugin.syncing });
 				if (!syncPlugin.syncing) {
 					syncPlugin.offref(handler);
 					resolve();
@@ -314,7 +339,17 @@ export default class JanitorPlugin extends Plugin {
 		});
 	}
 
-	onunload() {}
+	onunload() {
+		setDebugLogging(false, this.app, "");
+	}
+
+	public applyDebugLogging() {
+		setDebugLogging(
+			this.settings.debugLogging,
+			this.app,
+			this.manifest.dir ?? `${this.app.vault.configDir}/plugins/${this.manifest.id}`
+		);
+	}
 
 	public addIcon() {
 		this.removeIcon();

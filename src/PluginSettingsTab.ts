@@ -225,6 +225,19 @@ export default class JanitorSettingsTab extends PluginSettingTab {
 			})
 		}
 
+		new Setting(containerEl).setHeading();
+
+		new Setting(containerEl)
+			.setName("Debug logging")
+			.setDesc("Logs each scan step with timings to the console and to debug.log in the plugin folder. Use it to find where a scan is slow or hangs.")
+			.addToggle(bool => bool
+				.setValue(this.plugin.settings.debugLogging)
+				.onChange(async (value) => {
+					this.plugin.settings.debugLogging = value;
+					await this.plugin.saveSettings();
+					this.plugin.applyDebugLogging();
+				})
+			);
 	}
 
 	private createToggle(
