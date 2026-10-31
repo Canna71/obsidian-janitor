@@ -230,7 +230,7 @@ export class FileTree implements HoverParent {
 
 	private row(depth: number, cls?: string) {
 		const row = this.treeEl.createDiv({ cls: ["janitor-tree-row", ...(cls ? [cls] : [])] });
-		row.setCssProps({ "--janitor-depth": String(depth) });
+		row.style.setProperty("--janitor-depth", String(depth));
 		return row;
 	}
 
@@ -304,10 +304,8 @@ export class FileTree implements HoverParent {
 		this.hidePreview();
 		const doc = this.containerEl.doc;
 		this.previewEl = doc.body.createDiv("janitor-preview-overlay");
-		this.previewEl.setCssProps({
-			"--janitor-preview-left": `${Math.min(e.clientX + 15, doc.win.innerWidth - 220)}px`,
-			"--janitor-preview-top": `${Math.max(10, e.clientY - 150)}px`,
-		});
+		this.previewEl.style.setProperty("--janitor-preview-left", `${Math.min(e.clientX + 15, doc.win.innerWidth - 220)}px`);
+		this.previewEl.style.setProperty("--janitor-preview-top", `${Math.max(10, e.clientY - 150)}px`);
 		this.previewEl.createEl("img", { attr: { src: resourcePath, alt: "" } });
 	}
 
