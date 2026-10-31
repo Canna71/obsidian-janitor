@@ -3,6 +3,7 @@ import { App, FrontMatterCache, normalizePath, TFile, TFolder } from 'obsidian';
 import { CanvasData, CanvasTextData } from "obsidian/canvas"
 import { asyncFilter, partition } from './Utils';
 import { moment } from "obsidian";
+import { dlog, timed, timedAsync } from './DebugLog';
 export interface ScanResults {
 	scanning: boolean,
 	orphans: TFile[],
@@ -29,12 +30,12 @@ export class FileScanner {
 		this.settings = settings;
 	}
 
-	isNote(file: TFile): boolean {
+	isNote(this: void, file: TFile): boolean {
 		return file.extension.toLowerCase() === "md" || 
 		file.extension.toLowerCase() === "canvas" ;
 	}
 
-	isCanvas(file: TFile): boolean {
+	isCanvas(this: void, file: TFile): boolean {
 		return file.extension.toLowerCase() === "canvas" ;
 	}
 	async scan() {
@@ -56,15 +57,19 @@ export class FileScanner {
 			return includeRegexes.some(re => re.exec(path));
 		};
 
-		const files = allFiles.filter(file => passesFilters(file.path));
+		dlog("scan start", { allFiles: allFiles.length, exclusionFilters, includeFilters: this.settings.includedFilesFilters });
+		const files = timed("filter files", () => allFiles.filter(file => passesFilters(file.path)));
+		dlog("files after filters", files.length);
 
-		const [notes, others] = partition(files, this.isNote);
-		const frontMatters = this.getFrontMatters(notes);
-		const orphans = this.settings.processOrphans && await this.findOrphans(notes, others, frontMatters) ;
-		const empty = this.settings.processEmpty && await this.findEmpty(files) ;
-		const emptyFolders = this.settings.processEmptyFolders && this.findEmptyFolders(passesFilters);
-		const expired = this.settings.processExpired && this.findExpired(frontMatters) ;
-		const big = this.settings.processBig && this.findBigFiles(files) ;
+		const [notes, others] = timed("partition", () => partition(files, this.isNote));
+		dlog("partitioned", { notes: notes.length, others: others.length });
+		const frontMatters = timed("getFrontMatters", () => this.getFrontMatters(notes));
+		dlog("frontMatters with string props", frontMatters.length);
+		const orphans = this.settings.processOrphans && await timedAsync("findOrphans", () => this.findOrphans(notes, others, frontMatters)) ;
+		const empty = this.settings.processEmpty && await timedAsync("findEmpty", () => this.findEmpty(files)) ;
+		const emptyFolders = this.settings.processEmptyFolders && timed("findEmptyFolders", () => this.findEmptyFolders(passesFilters));
+		const expired = this.settings.processExpired && timed("findExpired", () => this.findExpired(frontMatters)) ;
+		const big = this.settings.processBig && timed("findBigFiles", () => this.findBigFiles(files)) ;
 
 		const results = {
 			orphans,
@@ -80,8 +85,9 @@ export class FileScanner {
 
 	private findEmptyFolders(passesFilters: (path: string) => boolean): TFolder[] {
 		return this.app.vault.getAllLoadedFiles()
-			.filter(f => f instanceof TFolder && f.path !== '/' && (f as TFolder).children.length === 0)
-			.filter(f => passesFilters(f.path)) as TFolder[];
+			.filter((f): f is TFolder => f instanceof TFolder)
+			.filter(f => f.path !== '/' && f.children.length === 0)
+			.filter(f => passesFilters(f.path));
 	}
 
 	private findBigFiles(files: TFile[]) {
@@ -108,9 +114,17 @@ export class FileScanner {
 	}
 
 	private async findEmpty(files: TFile[]) {
+		// Only notes can be "whitespace only" in a meaningful way. Reading
+		// every attachment as text costs seconds and hundreds of MB on a
+		// large vault, so other files count as empty only when size is 0.
+		const toRead = files.filter(f => f.stat.size !== 0 && this.isNote(f));
+		dlog("findEmpty will read", { files: toRead.length, totalMB: (toRead.reduce((n, f) => n + f.stat.size, 0) / 1048576).toFixed(1) });
+		let read = 0;
 		const empty = await asyncFilter(files, async file => {
 			if (file.stat.size === 0) return true;
+			if (!this.isNote(file)) return false;
 			const content = await this.app.vault.cachedRead(file);
+			if (++read % 1000 === 0) dlog(`findEmpty read ${read}/${toRead.length}, last ${file.path}`);
 			if (!this.whiteSpaceRegExp.test(content)) return true;
 			if (this.settings.emptyIgnoresFrontmatter) {
 				return this.isOnlyFrontmatter(file, content);
@@ -133,27 +147,29 @@ export class FileScanner {
 			others = others.filter(file => file.extension.toLowerCase() !== "base");
 		}
 
-		const resolvedLinks: { [key: string]: number; } = this.getResolvedLinks();
+		const resolvedLinks: { [key: string]: number; } = timed("getResolvedLinks", () => this.getResolvedLinks());
+		dlog("resolved link targets", Object.keys(resolvedLinks).length);
 
-		const canvasResources = await this.getCanvasResources(notes.filter(this.isCanvas));
+		const canvasResources = await timedAsync("getCanvasResources", () => this.getCanvasResources(notes.filter(this.isCanvas)));
 
 
-		const resolvedResources = this.combineLinksAndResolvedMetadata(frontMatters, 
+		const resolvedResources = timed("combineLinksAndResolvedMetadata", () => this.combineLinksAndResolvedMetadata(frontMatters, 
 			// resolvedLinks
 			{...resolvedLinks, ...canvasResources}
-			);
+			));
 
 
 
 		// now resolvedLinksAndResolvedProps contains all resolved resources:
 		// "others" that we collected and are not here are eligible to be purged
-		const orphans = this.getOrphans(others, resolvedResources);
+		const orphans = timed("getOrphans", () => this.getOrphans(others, resolvedResources));
 		return orphans;
 	}
 
 	async getCanvasResources(canvases: TFile[]) {
 		
 		const datas = await Promise.all(canvases.map(async file=>{
+			dlog("reading canvas", file.path);
 			const content = await this.app.vault.cachedRead(file);
 			const data = JSON.parse(content) as CanvasData
 
@@ -187,7 +203,7 @@ export class FileScanner {
 
 								acc[res] = (acc[res] || 0) + 1;
 								//@ts-ignore
-								const attPath = normalizePath(`${app.vault.config.attachmentFolderPath}/${res}`)
+								const attPath = normalizePath(`${this.app.vault.config.attachmentFolderPath}/${res}`)
 								acc[attPath] = (acc[attPath] || 0) + 1;
 							}
 						}
@@ -213,30 +229,24 @@ export class FileScanner {
 	}
 
 	private combineLinksAndResolvedMetadata(frontMatters: ({ frontMatter: FrontMatterCache; stringProps: string[]; resolvedProps: string[]; file: TFile; } | undefined)[], resolvedLinks: { [key: string]: number; }) {
-		return frontMatters.reduce(
-			(rl, fm) => {
-				if (fm?.resolvedProps?.length) {
-					return ({
-						...rl,
-						...fm.resolvedProps.reduce((ob, val) => ({ ...ob, [val]: 1 }), {})
-					});
-				} else {
-					return rl;
-				}
-			},
-			resolvedLinks
-		);
+		const combined = { ...resolvedLinks };
+		for (const fm of frontMatters) {
+			for (const val of fm?.resolvedProps ?? []) {
+				combined[val] = 1;
+			}
+		}
+		return combined;
 	}
 
 	private getFrontMatters(notes: TFile[]) {
 		return notes.map(file => {
-			const frontMatter = app.metadataCache.getFileCache(file)?.frontmatter;
+			const frontMatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
 			if (frontMatter) {
 				const stringProps: string[] = extractStringProperties(frontMatter);
 				if (stringProps?.length) {
 					// we should distinguish files from other props maybe...
 					const resolvedProps: string[] = stringProps.map(sp => {
-						const resolvedFile = app.metadataCache.getFirstLinkpathDest(sp, file.path);
+						const resolvedFile = this.app.metadataCache.getFirstLinkpathDest(sp, file.path);
 						if (resolvedFile)
 							return resolvedFile.path;
 					}).filter(sp => !!sp) as string[];
@@ -252,9 +262,9 @@ export class FileScanner {
 	}
 
 	private getResolvedLinks() {
-		const resolvedLinks: { [key: string]: number; } = Object.keys(app.metadataCache.resolvedLinks).
+		const resolvedLinks: { [key: string]: number; } = Object.keys(this.app.metadataCache.resolvedLinks).
 			reduce((rl: { [key: string]: number; }, fileName: string) => {
-				return Object.assign(rl, app.metadataCache.resolvedLinks[fileName]);
+				return Object.assign(rl, this.app.metadataCache.resolvedLinks[fileName]);
 
 			}, {});
 		return resolvedLinks;

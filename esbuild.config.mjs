@@ -1,7 +1,6 @@
 import esbuild from "esbuild";
 import process from "process";
-import builtins from 'builtin-modules'
-import svgrPlugin from 'esbuild-plugin-svgr';
+import { builtinModules } from "node:module";
 
 const banner =
 `/*
@@ -32,7 +31,8 @@ esbuild.build({
 		'@lezer/common',
 		'@lezer/highlight',
 		'@lezer/lr',
-		...builtins],
+		...builtinModules,
+		...builtinModules.map((m) => `node:${m}`)],
 	format: 'cjs',
 	watch: !prod,
 	minify: prod,
@@ -40,6 +40,5 @@ esbuild.build({
 	logLevel: "info",
 	sourcemap: prod ? false : 'inline',
 	treeShaking: true,
-	outfile: 'main.js',
-	plugins: [svgrPlugin()]
+	outfile: 'main.js'
 }).catch(() => process.exit(1));
